@@ -13897,15 +13897,24 @@ function playGachaFx(results){
 // ever sees signaling traffic (SDP/ICE exchange and short numeric IDs) - never any
 // gameplay data, which flows over the resulting WebRTC DataConnection directly
 // between the two browsers once matched
-// 1 digit means only 10 possible ids total - deliberately tiny, so that even with very
+// 2 digits means only 100 possible ids total - deliberately tiny, so that even with very
 // few concurrent players out there, the odds of any two searching clients' guesses
-// actually crossing paths within a few seconds are decent. The tradeoff is that
-// collisions on claiming an id (see claimOnlineHostId's retry-on-'unavailable-id')
-// become common too, which is fine - it just retries with another random digit
-const ONLINE_ID_DIGITS = 1;
+// actually crossing paths are decent. The tradeoff is that collisions on claiming an id
+// (see claimOnlineHostId's retry-on-'unavailable-id') are fairly common too, which is
+// fine - it just retries with another random id
+const ONLINE_ID_DIGITS = 2;
 const ONLINE_ID_SPACE = 10 ** ONLINE_ID_DIGITS;
-// 2 guesses/sec, walked through 0..9 in order rather than random - with only 10 ids
-// total, a sequential sweep guarantees every other id gets tried at least once every 5
+// The public PeerJS broker is ONE shared namespace for every app in the world, so a bare
+// 2-digit id like "03" is very likely already held by some unrelated peer - connecting to
+// it "succeeds" (the transport opens) even though nobody playing this game is there. So
+// the actual PeerJS id is this prefix + the 2 digits (the digits are still what gets
+// brute-forced), and a match only counts once the other side has proven it's this game
+// by answering a handshake (see beginOnlineHandshake)
+const ONLINE_ID_PREFIX = 'longpoint-';
+const ONLINE_GAME_SIG = 'longpoint-v1';
+const ONLINE_HANDSHAKE_MS = 4000;
+// 2 guesses/sec, walked through 00..99 in order rather than random - with only 100 ids
+// total, a sequential sweep guarantees every other id gets tried at least once every ~50
 // seconds, instead of random draws occasionally skipping one for many cycles in a row.
 // Still gentle enough on the shared PUBLIC broker to avoid tripping its abuse/rate-limit
 // protections
@@ -13931,6 +13940,7 @@ function stopOnlineSearch(){
 function teardownOnlineMatch(){
   stopOnlineSearch();
   onlineMatching = false;
+  onlineHandshaking = false;
   onlineMatchConfig = null;
   onlineRouletteDone = false;
   const rouletteLabel = document.getElementById('onlineRouletteLabel');
@@ -13944,7 +13954,7 @@ function teardownOnlineMatch(){
 function claimOnlineHostId(){
   if(!onlineMatching) return;
   const id = randomOnlineId();
-  const p = new Peer(id, {debug:0});
+  const p = new Peer(ONLINE_ID_PREFIX + id, {debug:0});
   let settled = false;
   p.on('open', ()=>{
     if(settled) return;
@@ -13976,16 +13986,16 @@ function onOnlinePeerReady(p){
   p.on('connection', (conn)=>{
     if(!onlineMatching || onlineConn){ conn.close(); return; } // already matched, or cancelled
     conn.on('open', ()=>{
-      if(!onlineMatching || onlineConn){ conn.close(); return; }
-      onOnlineMatched(conn, false);
+      if(!onlineMatching || onlineConn || onlineHandshaking){ conn.close(); return; }
+      beginOnlineHandshake(conn, false);
     });
   });
   // walks 0,1,2,...,9,0,1,... in order rather than drawing a fresh random guess each
   // tick - see the ONLINE_SEARCH_INTERVAL_MS comment above for why
   let searchCursor = Math.floor(Math.random()*ONLINE_ID_SPACE); // random starting point only, so many simultaneous searchers don't all march in lockstep
   onlineSearchTimer = setInterval(()=>{
-    if(!onlineMatching || onlineConn) return;
-    const candidate = String(searchCursor).padStart(ONLINE_ID_DIGITS, '0');
+    if(!onlineMatching || onlineConn || onlineHandshaking) return;
+    const candidate = ONLINE_ID_PREFIX + String(searchCursor).padStart(ONLINE_ID_DIGITS, '0');
     searchCursor = (searchCursor+1) % ONLINE_ID_SPACE;
     if(candidate === p.id) return; // never worth trying to connect to ourselves
     const conn = p.connect(candidate, {reliable:true});
@@ -13994,8 +14004,8 @@ function onOnlinePeerReady(p){
     // just skip this guess and let the next tick retry once it's back
     if(!conn) return;
     conn.on('open', ()=>{
-      if(!onlineMatching || onlineConn){ conn.close(); return; }
-      onOnlineMatched(conn, true);
+      if(!onlineMatching || onlineConn || onlineHandshaking){ conn.close(); return; }
+      beginOnlineHandshake(conn, true);
     });
     conn.on('error', ()=>{}); // expected constantly - most random guesses simply miss
   }, ONLINE_SEARCH_INTERVAL_MS);
@@ -14903,6 +14913,32 @@ function tryStartOnlineMatchWhenReady(){
   if(!onlineRouletteDone || !onlineMatchConfig) return;
   startOnlineMatch();
 }
+let onlineHandshaking = false;
+// a transport-level 'open' only proves SOMEONE with that id accepted the connection - not
+// that it's another copy of this game. Both sides send a signed hello right away and the
+// match only counts once the other side's arrives; anything that stays silent (or sends
+// something else) is dropped after ONLINE_HANDSHAKE_MS and the search just carries on
+function beginOnlineHandshake(conn, weAreHost){
+  onlineHandshaking = true;
+  let done = false;
+  const timer = setTimeout(()=>finish(false), ONLINE_HANDSHAKE_MS);
+  const onData = (d)=>{
+    if(d && d.type==='lpHello' && d.sig===ONLINE_GAME_SIG) finish(true);
+  };
+  function finish(ok){
+    if(done) return;
+    done = true;
+    clearTimeout(timer);
+    conn.off('data', onData);
+    onlineHandshaking = false;
+    if(ok && onlineMatching && !onlineConn){ onOnlineMatched(conn, weAreHost); return; }
+    try{ conn.close(); }catch(e){}
+  }
+  conn.on('data', onData);
+  conn.on('close', ()=>finish(false));
+  conn.on('error', ()=>finish(false));
+  try{ conn.send({type:'lpHello', sig:ONLINE_GAME_SIG}); }catch(e){ finish(false); }
+}
 function onOnlineMatched(conn, weAreHost){
   onlineConn = conn;
   onlineIsHost = weAreHost;
@@ -14913,7 +14949,7 @@ function onOnlineMatched(conn, weAreHost){
   stopOnlineSearch();
   onlineMatchSearching.style.display = 'none';
   // deliberately doesn't reveal the role here - that's what the roulette below is for
-  onlineMatchConnectedInfo.textContent = `接続成功！(相手ID: ${conn.peer})`;
+  onlineMatchConnectedInfo.textContent = `接続成功！(相手ID: ${String(conn.peer).replace(ONLINE_ID_PREFIX,'')})`;
   onlineMatchConnected.style.display = 'block';
   conn.on('close', ()=>{
     if(onlineConn!==conn) return; // stale handler from an already-replaced connection
