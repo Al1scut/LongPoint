@@ -87,48 +87,6 @@
     color:#9db0c8;margin:18px 0;user-select:none;
   }
   #onlineRouletteLabel.settled{color:#7fd1ff;text-shadow:0 0 18px rgba(127,209,255,0.6);}
-  #roomCreatePanel input[type=text], #roomCreatePanel input[type=number], #roomJoinPanel input[type=text]{
-    background:#1c2028;color:#dfe6f0;border:1px solid #3a4150;border-radius:4px;
-    padding:6px 8px;font-size:13px;min-width:0;
-  }
-  #roomCreateStatus, #roomJoinStatus{font-size:12px;line-height:1.7;margin-top:10px;color:#9db0c8;}
-  #roomCreateStatus.err, #roomJoinStatus.err{color:#ff8f8f;}
-  #roomCreateStatus.ok, #roomJoinStatus.ok{color:#8fd7a8;}
-  #roomCreateLiveInfo{font-size:13px;line-height:1.8;color:#dfe6f0;margin:0 0 10px;}
-  #roomPrivateKeyWrap{display:none;margin:8px 0 12px;font-size:13px;color:#f0d888;line-height:1.7;}
-  #roomPrivateKeyWrap button, .roomJoinAct, .roomKickBtn{
-    background:#1c2028;color:#dfe6f0;border:1px solid #3a4150;border-radius:5px;
-    padding:6px 10px;font-size:12px;cursor:pointer;
-  }
-  #roomPrivateKeyWrap button:hover, .roomJoinAct:hover, .roomKickBtn:hover{border-color:#7fd1ff;color:#7fd1ff;}
-  #roomPublicList, #roomMemberList, #pauseRoomKickList{display:flex;flex-direction:column;gap:8px;}
-  .roomJoinRow, .roomMemberRow{
-    display:flex;justify-content:space-between;align-items:center;gap:10px;
-    padding:9px 10px;border-radius:7px;background:#171b25;border:1px solid rgba(127,209,255,0.08);
-  }
-  .roomJoinMain, .roomMemberMain{min-width:0;display:flex;flex-direction:column;gap:2px;}
-  .roomJoinName, .roomMemberName{font-size:13px;font-weight:bold;color:#dfe6f0;word-break:break-word;}
-  .roomJoinMeta, .roomMemberMeta{font-size:11px;color:#8695ab;word-break:break-word;}
-  #pauseRoomKickWrap{display:none;margin-top:12px;padding-top:10px;border-top:1px solid rgba(127,209,255,0.14);}
-  #pauseRoomKickTitle{font-size:12px;color:#9db0c8;letter-spacing:1px;margin-bottom:8px;}
-  #chatBubbleLayer{position:fixed;inset:0;z-index:26;pointer-events:none;}
-  .chatBubble{
-    position:fixed;transform:translate(-50%,-100%);max-width:260px;padding:7px 10px;
-    border-radius:999px;background:rgba(16,18,26,0.92);border:1px solid rgba(127,209,255,0.22);
-    color:#eef4ff;font-family:system-ui,sans-serif;font-size:13px;line-height:1.35;
-    white-space:pre-wrap;word-break:break-word;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.4);
-    display:none;
-  }
-  #chatInputBar{
-    position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:27;display:none;
-    background:rgba(15,17,24,0.94);border:1px solid rgba(127,209,255,0.18);border-radius:10px;
-    padding:10px 12px;min-width:320px;max-width:min(82vw,560px);box-shadow:0 12px 50px rgba(0,0,0,0.5);
-  }
-  #chatInputBar input{
-    width:min(72vw,460px);background:#1c2028;color:#dfe6f0;border:1px solid #3a4150;border-radius:6px;
-    padding:8px 10px;font-size:13px;font-family:system-ui,sans-serif;
-  }
-  #chatInputHint{margin-top:6px;font-size:11px;color:#8695ab;font-family:system-ui,sans-serif;}
   #chapterTabs{display:flex;gap:2px;margin:6px 0 8px;border-bottom:1px solid #333a48;}
   .chapterTab{padding:7px 18px;font-size:13px;font-weight:bold;letter-spacing:1px;cursor:pointer;
     color:#8695ab;border-bottom:2px solid transparent;user-select:none;}
@@ -635,9 +593,7 @@
     <div class="menuItem" id="startBtn">START</div>
     <div class="menuItem" id="soloDuelBtn">SOLO DUEL</div>
     <div class="menuItem" id="campaignBtn">CAMPAIGN</div>
-    <div class="menuItem" id="onlineMatchBtn">RANDOM MATCH</div>
-    <div class="menuItem" id="openCreateRoomBtn">CREATE ROOM</div>
-    <div class="menuItem" id="openJoinRoomBtn">JOIN ROOM</div>
+    <div class="menuItem" id="onlineMatchBtn">ONLINE MATCH</div>
     <div class="menuItem" id="customSkinBtn">CUSTOM SKIN</div>
     <div class="menuItem" id="createItemBtn">CREATE ITEM</div>
     <div class="menuItem" id="skinShopBtn">SKIN SHOP</div>
@@ -742,7 +698,7 @@
     </div>
   </div>
   <div id="onlineMatchPanel" class="centerPanel">
-    <h2>RANDOM MATCH</h2>
+    <h2>ONLINE MATCH</h2>
     <div id="onlineMatchIdle">
       <p id="onlineMatchInfo">ランダムな相手とマッチングします。合言葉やコードの入力は不要です。マッチング後はホストになった側の設定が両者に適用されます。</p>
       <div class="setupSectionLabel">出現武器</div>
@@ -756,7 +712,7 @@
       <label><span>ランダムな壁の数</span><span><input type="range" id="onlineWallCount" min="0" max="40" step="1" value="0"> <span id="onlineWallCountVal">0</span></span></label>
       <div class="setupActions">
         <div class="menuItem" id="onlineMatchBackBtn">戻る</div>
-        <div class="menuItem" id="onlineMatchStartBtn">ランダムマッチ開始</div>
+        <div class="menuItem" id="onlineMatchStartBtn">マッチング開始</div>
       </div>
     </div>
     <div id="onlineMatchSearching" style="display:none;">
@@ -775,54 +731,7 @@
       </div>
     </div>
   </div>
-  <div id="roomCreatePanel" class="centerPanel">
-    <h2>CREATE ROOM</h2>
-    <div id="roomCreateForm">
-      <div class="optHint">RANDOM MATCH で選んだ武器・防具・HP倍率などの設定を、そのままこの部屋に適用します。</div>
-      <label><span>部屋名</span><span><input type="text" id="roomNameInput" maxlength="32" placeholder="例: Long Point Lobby"></span></label>
-      <label><span>人数上限</span><span><input type="number" id="roomMaxPlayers" min="2" max="12" step="1" value="4"> <span id="roomMaxPlayersVal">4</span></span></label>
-      <label><span>公開設定</span><span><select id="roomVisibility"><option value="public">公開</option><option value="private">非公開</option></select></span></label>
-      <div class="setupActions">
-        <div class="menuItem" id="roomCreateBackBtn">戻る</div>
-        <div class="menuItem" id="roomCreateOpenBtn">部屋を作成</div>
-      </div>
-    </div>
-    <div id="roomCreateLive" style="display:none;">
-      <p id="roomCreateLiveInfo"></p>
-      <div id="roomPrivateKeyWrap">
-        <span>非公開キー: <b id="roomPrivateKeyValue"></b></span>
-        <button type="button" id="roomCopyKeyBtn">コピー</button>
-      </div>
-      <div class="setupSectionLabel">メンバー</div>
-      <div id="roomMemberList"></div>
-      <div class="setupActions">
-        <div class="menuItem" id="roomLeaveBtn">部屋を閉じる</div>
-        <div></div>
-      </div>
-    </div>
-    <div id="roomCreateStatus"></div>
-  </div>
-  <div id="roomJoinPanel" class="centerPanel">
-    <h2>JOIN ROOM</h2>
-    <div class="setupSectionLabel">公開部屋</div>
-    <div id="roomPublicList"></div>
-    <div class="setupActions">
-      <div class="menuItem" id="roomJoinBackBtn">戻る</div>
-      <div class="menuItem" id="roomRefreshBtn">一覧を更新</div>
-    </div>
-    <label style="margin-top:14px;"><span>非公開部屋の鍵</span><span><input type="text" id="roomJoinKeyInput" maxlength="12" placeholder="例: A1B2C3"></span></label>
-    <div class="setupActions">
-      <div></div>
-      <div class="menuItem" id="roomJoinByKeyBtn">鍵で参加</div>
-    </div>
-    <div id="roomJoinStatus"></div>
-  </div>
 
-</div>
-<div id="chatBubbleLayer"></div>
-<div id="chatInputBar">
-  <input type="text" id="chatInputText" maxlength="80" placeholder="チャットを入力">
-  <div id="chatInputHint">Enter: 送信 / Esc: 閉じる</div>
 </div>
 <!-- deliberately NOT nested inside #menuScreen (unlike the rest of the title-screen-only
      panels above) - #menuScreen itself goes display:none the instant a run actually
@@ -983,10 +892,6 @@
   <div class="menuItem" id="pauseResumeBtn">再開</div>
   <div class="menuItem" id="pauseSettingsBtn">設定</div>
   <div class="menuItem" id="pauseExitBtn">退出</div>
-  <div id="pauseRoomKickWrap">
-    <div id="pauseRoomKickTitle">ROOM MEMBERS</div>
-    <div id="pauseRoomKickList"></div>
-  </div>
 </div>
 <div id="dmgFlash"></div>
 <div id="bloodVignette"></div>
@@ -9775,7 +9680,6 @@ window.addEventListener('keydown', e=>{
   // free_cam holds `paused` true itself (see toggleFreeCamDevMode) - P shouldn't be
   // able to fight that while it's active
   if((e.key==='p' || e.key==='P') && !e.repeat && !freeCamDevMode){ togglePause(); return; }
-  if(pausePanel.style.display==='block') return;
   // the world is frozen - every other key below drives combat/movement state directly
   // (not through stepOnce, which simply never runs while paused - see frame()), so
   // none of it should be allowed to sneak state changes in while the game "isn't
@@ -9787,10 +9691,6 @@ window.addEventListener('keydown', e=>{
   if((e.key==='e' || e.key==='E') && spectateTarget){
     spectateTarget = null;
     camState.freeCamOn = false; // picks free-fly back up from right here, not wherever it was before this possess session started
-    return;
-  }
-  if((e.key==='t' || e.key==='T') && gameStarted && onlineMode){
-    openOnlineChatInput();
     return;
   }
   if(e.key==='t' || e.key==='T'){
@@ -11637,7 +11537,6 @@ function renderFrameTail(dt){
   updateMusketHint(dt);
   updateAmmoHud();
   updateBladeDebris(dt);
-  updateChatBubbleLayer();
 }
 function stepOnce(dt){
   updateSunFocus(ragdoll.hip.x, ragdoll.hip.z);
@@ -11737,11 +11636,8 @@ function stepOnce(dt){
 function updateHealthUI(){
   // campaign (and SOLO DUEL) has its own dedicated restart overlay (see
   // showCampaignDeath/showSoloDuelDeath) - showing the normal mode's plain "DEAD" text
-  // underneath it too would just be visual clutter. Online matches likewise get their
-  // own result overlay (see finishOnlineMatch) once the match is decided, and until
-  // then a dead player is just waiting to be revived/for the match to end - so this
-  // plain "DEAD" text has no business appearing there either
-  deadMsg.style.display = (ragdoll.dead && !campaignMode && !soloDuelMode && !onlineMode) ? 'block' : 'none';
+  // underneath it too would just be visual clutter
+  deadMsg.style.display = (ragdoll.dead && !campaignMode && !soloDuelMode) ? 'block' : 'none';
   if(ragdoll.dead){
     deadStats.textContent = `撃破数: ${playerKills} / 切断数: ${playerSevers} / 到達ウェーブ: ${waveNumber}`;
   }
@@ -11863,42 +11759,27 @@ const pausePanel = document.getElementById('pausePanel');
 // muffles the BGM through a lowpass rather than stopping it outright (see
 // setBgmMuffled) - both restored to their real slider-driven values on resume
 function togglePause(){
-  const hostKickMenu = onlineRoomState.mode === 'host' && (
-    (onlineMode && gameStarted) ||
-    (!gameStarted && roomCreatePanel.style.display==='block' && roomCreateLive.style.display==='block')
-  );
-  if(!gameStarted && !hostKickMenu) return;
-  const menuOpen = pausePanel.style.display === 'block';
-  if(!menuOpen){
-    if(!hostKickMenu && onlineMode) return;
+  if(!gameStarted || onlineMode) return;
+  if(!paused){
+    // (dead in the sandbox = free-fly/spectate while the CPUs keep fighting - that can be
+    // paused like anything else. The campaign/solo-duel death overlays are handled just below)
     if(campaignClearMsg.style.display==='block' || campaignDeathMsg.style.display==='block') return;
-    paused = !hostKickMenu;
-    for(const k in keys) keys[k] = false;
+    paused = true;
     pauseOverlay.classList.add('active');
     pausePanel.style.display = 'block';
-    pauseRoomKickWrap.style.display = hostKickMenu ? 'block' : 'none';
-    pauseResumeBtn.textContent = hostKickMenu ? '閉じる' : '再開';
-    pauseSettingsBtn.style.display = hostKickMenu ? 'none' : '';
-    pauseExitBtn.style.display = hostKickMenu ? 'none' : '';
-    if(hostKickMenu) renderPauseRoomKickList();
+    // the mouse was locked to the canvas for aiming/looking - release it so the
+    // player can actually click a pause menu item (same reasoning as
+    // showCampaignClear/showCampaignDeath's own identical guard)
     if(document.pointerLockElement) document.exitPointerLock();
-    if(!hostKickMenu){
-      if(masterGain) masterGain.gain.value = 0;
-      setBgmMuffled(true);
-    }
+    if(masterGain) masterGain.gain.value = 0;
+    setBgmMuffled(true);
   } else {
     paused = false;
     pauseOverlay.classList.remove('active');
     pausePanel.style.display = 'none';
-    pauseRoomKickWrap.style.display = 'none';
-    pauseResumeBtn.textContent = '再開';
-    pauseSettingsBtn.style.display = '';
-    pauseExitBtn.style.display = '';
     const sfxVolEl = document.getElementById('optSfxVol');
-    if(!hostKickMenu){
-      if(masterGain) masterGain.gain.value = sfxVolEl ? (sfxVolEl.value/100)*0.55 : 0.55;
-      setBgmMuffled(false);
-    }
+    if(masterGain) masterGain.gain.value = sfxVolEl ? (sfxVolEl.value/100)*0.55 : 0.55;
+    setBgmMuffled(false);
   }
 }
 document.getElementById('pauseResumeBtn').addEventListener('click', togglePause);
@@ -11943,32 +11824,6 @@ const onlineMatchSearching = document.getElementById('onlineMatchSearching');
 const onlineMatchConnected = document.getElementById('onlineMatchConnected');
 const onlineMatchStatus = document.getElementById('onlineMatchStatus');
 const onlineMatchConnectedInfo = document.getElementById('onlineMatchConnectedInfo');
-const roomCreatePanel = document.getElementById('roomCreatePanel');
-const roomCreateForm = document.getElementById('roomCreateForm');
-const roomCreateLive = document.getElementById('roomCreateLive');
-const roomNameInput = document.getElementById('roomNameInput');
-const roomMaxPlayers = document.getElementById('roomMaxPlayers');
-const roomMaxPlayersVal = document.getElementById('roomMaxPlayersVal');
-const roomVisibility = document.getElementById('roomVisibility');
-const roomCreateLiveInfo = document.getElementById('roomCreateLiveInfo');
-const roomPrivateKeyWrap = document.getElementById('roomPrivateKeyWrap');
-const roomPrivateKeyValue = document.getElementById('roomPrivateKeyValue');
-const roomCopyKeyBtn = document.getElementById('roomCopyKeyBtn');
-const roomMemberList = document.getElementById('roomMemberList');
-const roomCreateStatus = document.getElementById('roomCreateStatus');
-const roomJoinPanel = document.getElementById('roomJoinPanel');
-const roomPublicList = document.getElementById('roomPublicList');
-const roomJoinKeyInput = document.getElementById('roomJoinKeyInput');
-const roomJoinStatus = document.getElementById('roomJoinStatus');
-const chatBubbleLayer = document.getElementById('chatBubbleLayer');
-const chatInputBar = document.getElementById('chatInputBar');
-const chatInputText = document.getElementById('chatInputText');
-const pauseRoomKickWrap = document.getElementById('pauseRoomKickWrap');
-const pauseRoomKickList = document.getElementById('pauseRoomKickList');
-const pauseResumeBtn = document.getElementById('pauseResumeBtn');
-const pauseSettingsBtn = document.getElementById('pauseSettingsBtn');
-const pauseExitBtn = document.getElementById('pauseExitBtn');
-const roomLeaveBtn = document.getElementById('roomLeaveBtn');
 
 // ---- ONLINE MATCH: pre-match settings ----
 // same generation pattern as the quick-play setup screen's weapon list (see below) -
@@ -12020,579 +11875,6 @@ function readOnlineSettings(){
   };
 }
 let onlineSettings = null;
-
-// ---- ROOM LAYER (PeerJS room host/join over the same broker already used by ONLINE MATCH) ----
-const ROOM_ID_PREFIX = 'longpoint-room-';
-const ROOM_CLIENT_ID_PREFIX = 'longpoint-room-client-';
-const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const CHAT_BUBBLE_MS = 5000;
-let roomClientPeer = null;
-let roomClientPeerReady = false;
-let roomClientPeerQueue = [];
-let chatInputOpen = false;
-const chatBubbleSlots = new Map();
-const onlineRoomState = {
-  mode:null,
-  code:'',
-  name:'',
-  maxPlayers:4,
-  public:true,
-  peer:null,
-  hostConn:null,
-  clients:new Map(),
-  members:[],
-  settings:null,
-};
-function normalizeRoomCode(code){ return String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12); }
-function clampRoomCap(n){ n = parseInt(n,10); if(!Number.isFinite(n)) n = 4; return Math.max(2, Math.min(12, n)); }
-function randomRoomCode(){ let out=''; for(let i=0;i<6;i++) out += ROOM_CODE_ALPHABET[Math.floor(Math.random()*ROOM_CODE_ALPHABET.length)]; return out; }
-function roomPeerIdFromCode(code){ return ROOM_ID_PREFIX + normalizeRoomCode(code).toLowerCase(); }
-function roomCodeFromPeerId(id){ return normalizeRoomCode(String(id||'').replace(ROOM_ID_PREFIX,'')); }
-function makeRoomClientId(){ return ROOM_CLIENT_ID_PREFIX + Math.random().toString(36).slice(2,10); }
-function setRoomStatus(el, text, kind=''){
-  if(!el) return;
-  el.className = kind ? kind : '';
-  el.textContent = text || '';
-}
-function roomSelfName(){ return playerName || '???'; }
-function roomMetaSummary(){
-  return `${onlineRoomState.name || 'ROOM'} / ${onlineRoomState.members.length}/${onlineRoomState.maxPlayers} / ホスト ${roomHostName()}`;
-}
-function roomHostName(){
-  const host = onlineRoomState.members.find(m=>m.isHost);
-  return host ? host.name : roomSelfName();
-}
-function openTitleMenu(){
-  roomCreatePanel.style.display = 'none';
-  roomJoinPanel.style.display = 'none';
-  onlineMatchPanel.style.display = 'none';
-  onlineMatchSearching.style.display = 'none';
-  onlineMatchConnected.style.display = 'none';
-  onlineMatchIdle.style.display = 'block';
-  menuPanel.style.display = 'block';
-}
-function openRandomMatchPanel(){
-  roomCreatePanel.style.display = 'none';
-  roomJoinPanel.style.display = 'none';
-  onlineMatchPanel.style.display = 'block';
-  onlineMatchIdle.style.display = 'block';
-  onlineMatchSearching.style.display = 'none';
-  onlineMatchConnected.style.display = 'none';
-  menuPanel.style.display = 'none';
-}
-function openCreateRoomPanel(){
-  clearRoomUiMessages();
-  resetRoomFormToDefaults();
-  onlineMatchPanel.style.display = 'none';
-  roomJoinPanel.style.display = 'none';
-  roomCreatePanel.style.display = 'block';
-  menuPanel.style.display = 'none';
-}
-function openJoinRoomPanel(){
-  clearRoomUiMessages();
-  onlineMatchPanel.style.display = 'none';
-  roomCreatePanel.style.display = 'none';
-  roomJoinPanel.style.display = 'block';
-  menuPanel.style.display = 'none';
-  refreshPublicRoomList();
-}
-function clearRoomUiMessages(){
-  setRoomStatus(roomCreateStatus, '');
-  setRoomStatus(roomJoinStatus, '');
-}
-function renderRoomMemberList(){
-  roomMemberList.innerHTML = '';
-  const members = onlineRoomState.members || [];
-  if(!members.length){
-    const empty = document.createElement('div');
-    empty.className = 'roomMemberMeta';
-    empty.textContent = 'まだメンバーはいません';
-    roomMemberList.appendChild(empty);
-    renderPauseRoomKickList();
-    return;
-  }
-  for(const member of members){
-    const row = document.createElement('div');
-    row.className = 'roomMemberRow';
-    const main = document.createElement('div');
-    main.className = 'roomMemberMain';
-    const name = document.createElement('div');
-    name.className = 'roomMemberName';
-    name.textContent = member.name + (member.isHost ? ' (HOST)' : '');
-    const meta = document.createElement('div');
-    meta.className = 'roomMemberMeta';
-    meta.textContent = member.id === 'self' ? 'あなた' : '接続済み';
-    main.append(name, meta);
-    row.appendChild(main);
-    if(onlineRoomState.mode === 'host' && member.id !== 'self' && member.id){
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'roomKickBtn';
-      btn.textContent = 'KICK';
-      btn.addEventListener('click', ()=> kickRoomMember(member.id));
-      row.appendChild(btn);
-    }
-    roomMemberList.appendChild(row);
-  }
-  renderPauseRoomKickList();
-}
-function renderPauseRoomKickList(){
-  pauseRoomKickList.innerHTML = '';
-  const others = (onlineRoomState.members || []).filter(m=>m.id && m.id !== 'self');
-  if(!others.length){
-    const empty = document.createElement('div');
-    empty.className = 'roomMemberMeta';
-    empty.textContent = 'キック対象のメンバーはいません';
-    pauseRoomKickList.appendChild(empty);
-    return;
-  }
-  for(const member of others){
-    const row = document.createElement('div');
-    row.className = 'roomMemberRow';
-    const main = document.createElement('div');
-    main.className = 'roomMemberMain';
-    const name = document.createElement('div');
-    name.className = 'roomMemberName';
-    name.textContent = member.name;
-    const meta = document.createElement('div');
-    meta.className = 'roomMemberMeta';
-    meta.textContent = 'Pメニューから切断';
-    main.append(name, meta);
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'roomKickBtn';
-    btn.textContent = 'KICK';
-    btn.addEventListener('click', ()=> kickRoomMember(member.id));
-    row.append(main, btn);
-    pauseRoomKickList.appendChild(row);
-  }
-}
-function setRoomMembers(members){
-  onlineRoomState.members = Array.isArray(members) ? members : [];
-  roomCreateLiveInfo.textContent = roomMetaSummary();
-  renderRoomMemberList();
-}
-function showRoomLiveState(){
-  roomCreatePanel.style.display = 'block';
-  roomJoinPanel.style.display = 'none';
-  onlineMatchPanel.style.display = 'none';
-  roomCreateForm.style.display = 'none';
-  roomCreateLive.style.display = 'block';
-  roomLeaveBtn.textContent = onlineRoomState.mode === 'host' ? '部屋を閉じる' : '部屋を退出';
-  roomPrivateKeyWrap.style.display = onlineRoomState.public ? 'none' : 'flex';
-  roomPrivateKeyWrap.style.alignItems = 'center';
-  roomPrivateKeyWrap.style.gap = '10px';
-  roomPrivateKeyValue.textContent = onlineRoomState.code;
-  roomCreateLiveInfo.textContent = roomMetaSummary();
-  renderRoomMemberList();
-}
-function resetRoomFormToDefaults(){
-  roomCreateForm.style.display = 'block';
-  roomCreateLive.style.display = 'none';
-  roomNameInput.value = roomNameInput.value || 'Long Point Room';
-  roomMaxPlayers.value = clampRoomCap(roomMaxPlayers.value);
-  roomMaxPlayersVal.textContent = clampRoomCap(roomMaxPlayers.value);
-}
-function destroyRoomClientPeer(){
-  if(roomClientPeer){ try{ roomClientPeer.destroy(); }catch(e){} }
-  roomClientPeer = null;
-  roomClientPeerReady = false;
-  roomClientPeerQueue = [];
-}
-function cleanupRoomState(keepClientPeer=false){
-  if(onlineRoomState.mode === 'host'){
-    for(const {conn} of onlineRoomState.clients.values()){ try{ conn.close(); }catch(e){} }
-  }
-  if(onlineRoomState.hostConn){ try{ onlineRoomState.hostConn.close(); }catch(e){} }
-  if(onlineRoomState.peer){ try{ onlineRoomState.peer.destroy(); }catch(e){} }
-  onlineRoomState.mode = null;
-  onlineRoomState.code = '';
-  onlineRoomState.name = '';
-  onlineRoomState.maxPlayers = 4;
-  onlineRoomState.public = true;
-  onlineRoomState.peer = null;
-  onlineRoomState.hostConn = null;
-  onlineRoomState.clients = new Map();
-  onlineRoomState.members = [];
-  onlineRoomState.settings = null;
-  if(!keepClientPeer) destroyRoomClientPeer();
-  renderRoomMemberList();
-}
-function closeActiveRoom(message='', keepClientPeer=false){
-  if(onlineRoomState.mode === 'host'){
-    for(const {conn} of onlineRoomState.clients.values()){
-      try{ conn.send({type:'roomClosed'}); }catch(e){}
-    }
-  } else if(onlineRoomState.mode === 'guest' && onlineRoomState.hostConn && onlineRoomState.hostConn.open){
-    try{ onlineRoomState.hostConn.send({type:'roomLeave'}); }catch(e){}
-  }
-  cleanupRoomState(keepClientPeer);
-  resetRoomFormToDefaults();
-  openTitleMenu();
-  if(message) setRoomStatus(roomCreateStatus, message, 'ok');
-}
-function ensureRoomClientPeer(onReady){
-  if(roomClientPeer && roomClientPeerReady){ onReady(roomClientPeer); return; }
-  roomClientPeerQueue.push(onReady);
-  if(roomClientPeer) return;
-  const peer = new Peer(makeRoomClientId(), {debug:0});
-  roomClientPeer = peer;
-  peer.on('open', ()=>{
-    roomClientPeerReady = true;
-    const queue = roomClientPeerQueue.slice();
-    roomClientPeerQueue.length = 0;
-    for(const fn of queue) fn(peer);
-  });
-  peer.on('error', ()=>{
-    destroyRoomClientPeer();
-    setRoomStatus(roomJoinStatus, '参加用接続の初期化に失敗しました', 'err');
-  });
-}
-function broadcastRoomMembers(){
-  if(onlineRoomState.mode !== 'host') return;
-  const payload = {type:'roomMembers', members:onlineRoomState.members, roomName:onlineRoomState.name, maxPlayers:onlineRoomState.maxPlayers, public:onlineRoomState.public, code:onlineRoomState.code};
-  for(const {conn} of onlineRoomState.clients.values()){
-    if(conn && conn.open){ try{ conn.send(payload); }catch(e){} }
-  }
-  setRoomMembers(onlineRoomState.members.slice());
-}
-function removeRoomMember(memberId){
-  if(!memberId) return;
-  onlineRoomState.clients.delete(memberId);
-  onlineRoomState.members = onlineRoomState.members.filter(m=>m.id !== memberId);
-  broadcastRoomMembers();
-}
-function kickRoomMember(memberId){
-  if(onlineRoomState.mode !== 'host') return;
-  const client = onlineRoomState.clients.get(memberId);
-  if(client && client.conn){
-    try{ client.conn.send({type:'roomKicked'}); }catch(e){}
-    try{ client.conn.close(); }catch(e){}
-  }
-  removeRoomMember(memberId);
-}
-function handleHostRoomConnection(conn){
-  conn.on('data', data=>{
-    if(!data || typeof data.type !== 'string') return;
-    if(data.type === 'roomInfoReq'){
-      try{ conn.send({type:'roomInfo', roomName:onlineRoomState.name, hostName:roomSelfName(), current:onlineRoomState.members.length, maxPlayers:onlineRoomState.maxPlayers, public:onlineRoomState.public, code:onlineRoomState.code}); }catch(e){}
-      setTimeout(()=>{ try{ conn.close(); }catch(e){} }, 60);
-      return;
-    }
-    if(data.type === 'roomJoin'){
-      if(onlineRoomState.members.length >= onlineRoomState.maxPlayers){
-        try{ conn.send({type:'roomJoinResult', ok:false, reason:'この部屋は満員です'}); }catch(e){}
-        try{ conn.close(); }catch(e){}
-        return;
-      }
-      const rawName = typeof data.name === 'string' ? data.name.trim() : '';
-      const name = nameFormatError(rawName) ? '???' : rawName;
-      onlineRoomState.clients.set(conn.peer, {conn, name});
-      onlineRoomState.members = [...onlineRoomState.members.filter(m=>m.id !== conn.peer), {id:conn.peer, name, isHost:false}];
-      try{
-        conn.send({
-          type:'roomJoinResult', ok:true, roomName:onlineRoomState.name, hostName:roomSelfName(),
-          maxPlayers:onlineRoomState.maxPlayers, public:onlineRoomState.public, code:onlineRoomState.code, members:onlineRoomState.members
-        });
-      }catch(e){}
-      broadcastRoomMembers();
-      return;
-    }
-  });
-  conn.on('close', ()=> removeRoomMember(conn.peer));
-  conn.on('error', ()=> removeRoomMember(conn.peer));
-}
-function startCreateRoom(){
-  clearRoomUiMessages();
-  if(onlineRoomState.mode) cleanupRoomState(true);
-  const name = (roomNameInput.value || 'Long Point Room').trim().slice(0,32) || 'Long Point Room';
-  const maxPlayers = clampRoomCap(roomMaxPlayers.value);
-  roomMaxPlayers.value = maxPlayers;
-  roomMaxPlayersVal.textContent = maxPlayers;
-  const isPublic = roomVisibility.value !== 'private';
-  const settings = readOnlineSettings();
-  setRoomStatus(roomCreateStatus, '部屋を作成中…');
-  const tryClaim = (triesLeft=6)=>{
-    const code = randomRoomCode();
-    const peer = new Peer(roomPeerIdFromCode(code), {debug:0});
-    let settled = false;
-    peer.on('open', ()=>{
-      if(settled) return;
-      settled = true;
-      onlineRoomState.mode = 'host';
-      onlineRoomState.code = code;
-      onlineRoomState.name = name;
-      onlineRoomState.maxPlayers = maxPlayers;
-      onlineRoomState.public = isPublic;
-      onlineRoomState.peer = peer;
-      onlineRoomState.hostConn = null;
-      onlineRoomState.clients = new Map();
-      onlineRoomState.settings = settings;
-      onlineRoomState.members = [{id:'self', name:roomSelfName(), isHost:true}];
-      peer.on('connection', handleHostRoomConnection);
-      peer.on('error', ()=>{});
-      showRoomLiveState();
-      setRoomStatus(roomCreateStatus, isPublic ? '公開部屋を作成しました' : '非公開部屋を作成しました', 'ok');
-    });
-    peer.on('error', ()=>{
-      if(settled) return;
-      settled = true;
-      try{ peer.destroy(); }catch(e){}
-      if(triesLeft > 0) tryClaim(triesLeft-1);
-      else setRoomStatus(roomCreateStatus, '部屋IDの確保に失敗しました', 'err');
-    });
-  };
-  tryClaim();
-}
-function handleGuestRoomData(data){
-  if(!data || typeof data.type !== 'string') return;
-  if(data.type === 'roomMembers'){
-    onlineRoomState.name = data.roomName || onlineRoomState.name;
-    onlineRoomState.maxPlayers = clampRoomCap(data.maxPlayers || onlineRoomState.maxPlayers);
-    onlineRoomState.public = !!data.public;
-    onlineRoomState.code = normalizeRoomCode(data.code || onlineRoomState.code);
-    setRoomMembers(Array.isArray(data.members) ? data.members : []);
-    return;
-  }
-  if(data.type === 'roomKicked'){
-    cleanupRoomState(true);
-    openTitleMenu();
-    setRoomStatus(roomJoinStatus, 'ホストにキックされました', 'err');
-    return;
-  }
-  if(data.type === 'roomClosed'){
-    cleanupRoomState(true);
-    openTitleMenu();
-    setRoomStatus(roomJoinStatus, '部屋が閉じられました', 'err');
-  }
-}
-function joinRoomByCode(code){
-  clearRoomUiMessages();
-  const cleanCode = normalizeRoomCode(code);
-  if(!cleanCode){
-    setRoomStatus(roomJoinStatus, '鍵を入力してください', 'err');
-    return;
-  }
-  if(onlineRoomState.mode) cleanupRoomState(true);
-  setRoomStatus(roomJoinStatus, '部屋に参加しています…');
-  ensureRoomClientPeer(peer=>{
-    const conn = peer.connect(roomPeerIdFromCode(cleanCode), {reliable:true});
-    let joined = false;
-    const timer = setTimeout(()=>{
-      if(joined) return;
-      try{ conn.close(); }catch(e){}
-      setRoomStatus(roomJoinStatus, '部屋が見つからないか鍵が違います', 'err');
-    }, 4000);
-    conn.on('open', ()=>{
-      try{ conn.send({type:'roomJoin', code:cleanCode, name:roomSelfName()}); }catch(e){}
-    });
-    conn.on('data', data=>{
-      if(!data || typeof data.type !== 'string') return;
-      if(!joined && data.type === 'roomJoinResult'){
-        if(!data.ok){
-          clearTimeout(timer);
-          try{ conn.close(); }catch(e){}
-          setRoomStatus(roomJoinStatus, data.reason || '参加できませんでした', 'err');
-          return;
-        }
-        joined = true;
-        clearTimeout(timer);
-        onlineRoomState.mode = 'guest';
-        onlineRoomState.code = cleanCode;
-        onlineRoomState.name = data.roomName || 'ROOM';
-        onlineRoomState.maxPlayers = clampRoomCap(data.maxPlayers || 4);
-        onlineRoomState.public = !!data.public;
-        onlineRoomState.peer = null;
-        onlineRoomState.hostConn = conn;
-        onlineRoomState.clients = new Map();
-        onlineRoomState.settings = null;
-        setRoomMembers(Array.isArray(data.members) ? data.members : []);
-        showRoomLiveState();
-        setRoomStatus(roomCreateStatus, `部屋に参加しました（ホスト: ${data.hostName || '???'}）`, 'ok');
-        return;
-      }
-      if(joined) handleGuestRoomData(data);
-    });
-    conn.on('close', ()=>{
-      clearTimeout(timer);
-      if(joined && onlineRoomState.mode === 'guest' && onlineRoomState.hostConn === conn){
-        cleanupRoomState(true);
-        openTitleMenu();
-        setRoomStatus(roomJoinStatus, '部屋との接続が切れました', 'err');
-      }
-    });
-    conn.on('error', ()=>{
-      if(joined) return;
-      clearTimeout(timer);
-      setRoomStatus(roomJoinStatus, '部屋が見つからないか鍵が違います', 'err');
-    });
-  });
-}
-function renderPublicRooms(rooms){
-  roomPublicList.innerHTML = '';
-  if(!rooms.length){
-    const empty = document.createElement('div');
-    empty.className = 'roomMemberMeta';
-    empty.textContent = '公開部屋は見つかりませんでした';
-    roomPublicList.appendChild(empty);
-    setRoomStatus(roomJoinStatus, '公開部屋一覧を更新しました', 'ok');
-    return;
-  }
-  rooms.sort((a,b)=> (a.roomName||'').localeCompare(b.roomName||'', 'ja'));
-  for(const room of rooms){
-    const row = document.createElement('div');
-    row.className = 'roomJoinRow';
-    const main = document.createElement('div');
-    main.className = 'roomJoinMain';
-    const name = document.createElement('div');
-    name.className = 'roomJoinName';
-    name.textContent = room.roomName || 'ROOM';
-    const meta = document.createElement('div');
-    meta.className = 'roomJoinMeta';
-    meta.textContent = `ホスト: ${room.hostName || '???'} / ${room.current||0}/${room.maxPlayers||0}`;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'roomJoinAct';
-    btn.textContent = '参加';
-    btn.addEventListener('click', ()=> joinRoomByCode(room.code || roomCodeFromPeerId(room.roomId)));
-    main.append(name, meta);
-    row.append(main, btn);
-    roomPublicList.appendChild(row);
-  }
-  setRoomStatus(roomJoinStatus, '公開部屋一覧を更新しました', 'ok');
-}
-function refreshPublicRoomList(){
-  roomPublicList.innerHTML = '';
-  setRoomStatus(roomJoinStatus, '公開部屋を検索中…');
-  ensureRoomClientPeer(peer=>{
-    if(typeof peer.listAllPeers !== 'function'){
-      setRoomStatus(roomJoinStatus, 'この PeerJS 接続では公開部屋一覧を取得できません', 'err');
-      return;
-    }
-    try{
-      peer.listAllPeers(peers=>{
-        const ids = Array.from(new Set((peers || []).filter(id=>String(id).startsWith(ROOM_ID_PREFIX)))).slice(0, 30);
-        if(!ids.length){ renderPublicRooms([]); return; }
-        const rooms = [];
-        let pending = ids.length;
-        const finish = ()=>{ pending--; if(pending <= 0) renderPublicRooms(rooms); };
-        for(const roomId of ids){
-          const conn = peer.connect(roomId, {reliable:true});
-          let done = false;
-          const closeProbe = ()=>{ if(done) return; done = true; try{ conn.close(); }catch(e){} finish(); };
-          const timer = setTimeout(closeProbe, 1400);
-          conn.on('open', ()=>{ try{ conn.send({type:'roomInfoReq'}); }catch(e){ clearTimeout(timer); closeProbe(); } });
-          conn.on('data', data=>{
-            if(data && data.type === 'roomInfo' && data.public){
-              rooms.push({...data, roomId, code:data.code || roomCodeFromPeerId(roomId)});
-            }
-            clearTimeout(timer);
-            closeProbe();
-          });
-          conn.on('error', ()=>{ clearTimeout(timer); closeProbe(); });
-          conn.on('close', ()=>{ clearTimeout(timer); closeProbe(); });
-        }
-      });
-    }catch(e){
-      setRoomStatus(roomJoinStatus, '公開部屋一覧の取得に失敗しました', 'err');
-    }
-  });
-}
-function copyRoomKey(){
-  const key = onlineRoomState.code || roomPrivateKeyValue.textContent || '';
-  if(!key) return;
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(key).then(()=> setRoomStatus(roomCreateStatus, '鍵をコピーしました', 'ok')).catch(()=> setRoomStatus(roomCreateStatus, '鍵をコピーできませんでした', 'err'));
-  } else {
-    setRoomStatus(roomCreateStatus, 'この環境では自動コピーに対応していません', 'err');
-  }
-}
-function ensureChatBubbleSlot(key){
-  let slot = chatBubbleSlots.get(key);
-  if(slot) return slot;
-  const el = document.createElement('div');
-  el.className = 'chatBubble';
-  chatBubbleLayer.appendChild(el);
-  slot = {el, character:null, until:0};
-  chatBubbleSlots.set(key, slot);
-  return slot;
-}
-function setChatBubbleForCharacter(character, key, text){
-  const msg = String(text||'').replace(/[\r\n\t]+/g, ' ').trim().slice(0, 80);
-  if(!character || !msg) return;
-  const slot = ensureChatBubbleSlot(key);
-  slot.character = character;
-  slot.until = performance.now() + CHAT_BUBBLE_MS;
-  slot.el.textContent = msg;
-  slot.el.style.display = 'block';
-}
-function updateChatBubbleLayer(){
-  const now = performance.now();
-  for(const [key, slot] of chatBubbleSlots){
-    if(!slot.character || slot.until <= now){
-      slot.el.style.display = 'none';
-      continue;
-    }
-    const world = new THREE.Vector3(slot.character.head.x, slot.character.head.y + 34, slot.character.head.z);
-    world.project(camera);
-    if(world.z < -1 || world.z > 1){ slot.el.style.display = 'none'; continue; }
-    const x = (world.x * 0.5 + 0.5) * window.innerWidth;
-    const y = (-world.y * 0.5 + 0.5) * window.innerHeight - 16;
-    slot.el.style.left = x + 'px';
-    slot.el.style.top = y + 'px';
-    slot.el.style.display = 'block';
-  }
-}
-function openOnlineChatInput(){
-  if(chatInputOpen || !gameStarted || !onlineMode) return;
-  chatInputOpen = true;
-  chatInputBar.style.display = 'block';
-  chatInputText.value = '';
-  for(const k in keys) keys[k] = false;
-  chatInputText.focus();
-}
-function closeOnlineChatInput(){
-  chatInputOpen = false;
-  chatInputBar.style.display = 'none';
-  chatInputText.blur();
-}
-function sendOnlineChatMessage(text){
-  const msg = String(text||'').replace(/[\r\n\t]+/g, ' ').trim().slice(0, 80);
-  if(!msg || !onlineMode) return;
-  setChatBubbleForCharacter(ragdoll, 'self', msg);
-  if(onlineConn && onlineConn.open){
-    try{ onlineConn.send({type:'chat', who:onlineIsHost ? 'host' : 'guest', text:msg}); }catch(e){}
-  }
-}
-function submitOnlineChatInput(){
-  const msg = chatInputText.value;
-  closeOnlineChatInput();
-  sendOnlineChatMessage(msg);
-}
-roomMaxPlayers.addEventListener('input', ()=>{
-  roomMaxPlayers.value = clampRoomCap(roomMaxPlayers.value);
-  roomMaxPlayersVal.textContent = clampRoomCap(roomMaxPlayers.value);
-});
-roomCopyKeyBtn.addEventListener('click', copyRoomKey);
-chatInputText.addEventListener('keydown', e=>{
-  e.stopPropagation();
-  if(e.key === 'Enter'){ e.preventDefault(); submitOnlineChatInput(); }
-  else if(e.key === 'Escape'){ e.preventDefault(); closeOnlineChatInput(); }
-});
-document.getElementById('openCreateRoomBtn').addEventListener('click', ()=>{
-  try{ openCreateRoomPanel(); }
-  catch(err){ console.error(err); openTitleMenu(); }
-});
-document.getElementById('openJoinRoomBtn').addEventListener('click', ()=>{
-  try{ openJoinRoomPanel(); }
-  catch(err){ console.error(err); openTitleMenu(); }
-});
-document.getElementById('roomCreateBackBtn').addEventListener('click', ()=>{ openTitleMenu(); });
-document.getElementById('roomCreateOpenBtn').addEventListener('click', startCreateRoom);
-document.getElementById('roomLeaveBtn').addEventListener('click', ()=> closeActiveRoom(onlineRoomState.mode === 'host' ? '部屋を閉じました' : '部屋を退出しました', true));
-document.getElementById('roomJoinBackBtn').addEventListener('click', ()=>{ openTitleMenu(); });
-document.getElementById('roomRefreshBtn').addEventListener('click', refreshPublicRoomList);
-document.getElementById('roomJoinByKeyBtn').addEventListener('click', ()=> joinRoomByCode(roomJoinKeyInput.value));
 
 // ---- START: pre-game setup screen (quick play) ----
 // the weapon-pool checkboxes are generated straight off WEAPON_KINDS/ITEM_DISPLAY_NAME
@@ -15313,10 +14595,6 @@ function serializeCharacter(character, full=true){
     const hp = {}, bleed = {};
     for(const k in character.parts){ hp[k] = Math.round(character.parts[k].hp*10)/10; bleed[k] = Math.round(character.parts[k].bleed*100)/100; }
     out.hp = hp; out.bleed = bleed; out.stamina = character.stamina;
-    // bloodLoss never advances locally on the guest (it has no physics authority, see
-    // the big comment above the online-match section), so without syncing it here the
-    // guest's own bloodVignette (see updateBloodVignette) would just sit at 0 forever
-    out.bloodLoss = Math.round(character.bloodLoss*10)/10;
   }
   return out;
 }
@@ -15405,7 +14683,6 @@ function applySerializedCharacter(character, snap){
   // spawns the way the discrete wound-impact events are (see spawnWound's relay)
   if(snap.bleed) for(const k in snap.bleed) if(character.parts[k]) character.parts[k].bleed = snap.bleed[k];
   if(typeof snap.stamina === 'number') character.stamina = snap.stamina;
-  if(typeof snap.bloodLoss === 'number') character.bloodLoss = snap.bloodLoss;
   if(snap.weapon) applyOnlineHeldWeapon(character, snap.weapon);
 }
 function smoothOnlineCharacter(character, dt){
@@ -15555,11 +14832,6 @@ function handleOnlineData(data, weAreHost){
     // this side's stays until the player clicks out of it
     if(onlineMatchOver) return;
     forfeitOnlineMatchByOpponent('相手が退出しました');
-    return;
-  }
-  if(data.type==='chat'){
-    const target = data.who === 'host' ? remotePlayer : (data.who === 'guest' ? remotePlayer : null);
-    if(target) setChatBubbleForCharacter(target, data.who, data.text);
     return;
   }
   if(data.type==='matchResult' && !weAreHost){
@@ -15722,10 +14994,15 @@ function onOnlineMatched(conn, weAreHost){
   });
 }
 document.getElementById('onlineMatchBtn').addEventListener('click', ()=>{
-  openRandomMatchPanel();
+  menuPanel.style.display = 'none';
+  onlineMatchPanel.style.display = 'block';
+  onlineMatchIdle.style.display = 'block';
+  onlineMatchSearching.style.display = 'none';
+  onlineMatchConnected.style.display = 'none';
 });
 document.getElementById('onlineMatchBackBtn').addEventListener('click', ()=>{
-  openTitleMenu();
+  onlineMatchPanel.style.display = 'none';
+  menuPanel.style.display = 'block';
 });
 document.getElementById('onlineMatchStartBtn').addEventListener('click', ()=>{
   onlineSettings = readOnlineSettings();
@@ -15864,7 +15141,7 @@ document.getElementById('optSfxVol').addEventListener('input', e=>{
 // is what makes delegation from a single document-level listener possible; the
 // "already focused" tracking below suppresses the focus sound re-firing on every
 // mousemove between an element's own child nodes.
-const UI_SFX_SELECTOR = '.menuItem, .stageBtn, .optTab, .sdOption, .customSkinTab, .faceListItem, .itemListItem, .skinTemplateItem, .skinTemplateDel, .skinShopCatArrow, #optionsClose, #sdBackBtn, #skinShopBackBtn, #customSkinBackBtn, #customSkinSaveBtn, #customSkinSaveTemplateBtn, .roomJoinAct, .roomKickBtn';
+const UI_SFX_SELECTOR = '.menuItem, .stageBtn, .optTab, .sdOption, .customSkinTab, .faceListItem, .itemListItem, .skinTemplateItem, .skinTemplateDel, .skinShopCatArrow, #optionsClose, #sdBackBtn, #skinShopBackBtn, #customSkinBackBtn, #customSkinSaveBtn, #customSkinSaveTemplateBtn';
 let uiSfxLastFocused = null;
 document.addEventListener('mouseover', e=>{
   const target = e.target.closest(UI_SFX_SELECTOR);
@@ -15896,7 +15173,6 @@ document.getElementById('exitBtn').addEventListener('click', ()=>{
 });
 
 </script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body>
 
 </html>
