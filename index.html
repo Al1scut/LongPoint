@@ -636,6 +636,8 @@
     <div class="menuItem" id="soloDuelBtn">SOLO DUEL</div>
     <div class="menuItem" id="campaignBtn">CAMPAIGN</div>
     <div class="menuItem" id="onlineMatchBtn">RANDOM MATCH</div>
+    <div class="menuItem" id="openCreateRoomBtn">CREATE ROOM</div>
+    <div class="menuItem" id="openJoinRoomBtn">JOIN ROOM</div>
     <div class="menuItem" id="customSkinBtn">CUSTOM SKIN</div>
     <div class="menuItem" id="createItemBtn">CREATE ITEM</div>
     <div class="menuItem" id="skinShopBtn">SKIN SHOP</div>
@@ -756,10 +758,6 @@
         <div class="menuItem" id="onlineMatchBackBtn">戻る</div>
         <div class="menuItem" id="onlineMatchStartBtn">ランダムマッチ開始</div>
       </div>
-      <div class="setupActions" style="margin-top:10px;gap:16px;justify-content:flex-start;">
-        <div class="menuItem" id="openCreateRoomBtn">CREATE ROOM</div>
-        <div class="menuItem" id="openJoinRoomBtn">JOIN ROOM</div>
-      </div>
     </div>
     <div id="onlineMatchSearching" style="display:none;">
       <p id="onlineMatchStatus">相手を探しています…</p>
@@ -776,7 +774,8 @@
         <div></div>
       </div>
     </div>
-    <div id="roomCreatePanel" class="centerPanel">
+  </div>
+  <div id="roomCreatePanel" class="centerPanel">
     <h2>CREATE ROOM</h2>
     <div id="roomCreateForm">
       <div class="optHint">RANDOM MATCH で選んだ武器・防具・HP倍率などの設定を、そのままこの部屋に適用します。</div>
@@ -12063,10 +12062,39 @@ function roomHostName(){
   const host = onlineRoomState.members.find(m=>m.isHost);
   return host ? host.name : roomSelfName();
 }
+function openTitleMenu(){
+  roomCreatePanel.style.display = 'none';
+  roomJoinPanel.style.display = 'none';
+  onlineMatchPanel.style.display = 'none';
+  onlineMatchSearching.style.display = 'none';
+  onlineMatchConnected.style.display = 'none';
+  onlineMatchIdle.style.display = 'block';
+  menuPanel.style.display = 'block';
+}
 function openRandomMatchPanel(){
   roomCreatePanel.style.display = 'none';
   roomJoinPanel.style.display = 'none';
   onlineMatchPanel.style.display = 'block';
+  onlineMatchIdle.style.display = 'block';
+  onlineMatchSearching.style.display = 'none';
+  onlineMatchConnected.style.display = 'none';
+  menuPanel.style.display = 'none';
+}
+function openCreateRoomPanel(){
+  clearRoomUiMessages();
+  resetRoomFormToDefaults();
+  onlineMatchPanel.style.display = 'none';
+  roomJoinPanel.style.display = 'none';
+  roomCreatePanel.style.display = 'block';
+  menuPanel.style.display = 'none';
+}
+function openJoinRoomPanel(){
+  clearRoomUiMessages();
+  onlineMatchPanel.style.display = 'none';
+  roomCreatePanel.style.display = 'none';
+  roomJoinPanel.style.display = 'block';
+  menuPanel.style.display = 'none';
+  refreshPublicRoomList();
 }
 function clearRoomUiMessages(){
   setRoomStatus(roomCreateStatus, '');
@@ -12200,7 +12228,7 @@ function closeActiveRoom(message='', keepClientPeer=false){
   }
   cleanupRoomState(keepClientPeer);
   resetRoomFormToDefaults();
-  openRandomMatchPanel();
+  openTitleMenu();
   if(message) setRoomStatus(roomCreateStatus, message, 'ok');
 }
 function ensureRoomClientPeer(onReady){
@@ -12328,13 +12356,13 @@ function handleGuestRoomData(data){
   }
   if(data.type === 'roomKicked'){
     cleanupRoomState(true);
-    openRandomMatchPanel();
+    openTitleMenu();
     setRoomStatus(roomJoinStatus, 'ホストにキックされました', 'err');
     return;
   }
   if(data.type === 'roomClosed'){
     cleanupRoomState(true);
-    openRandomMatchPanel();
+    openTitleMenu();
     setRoomStatus(roomJoinStatus, '部屋が閉じられました', 'err');
   }
 }
@@ -12389,7 +12417,7 @@ function joinRoomByCode(code){
       clearTimeout(timer);
       if(joined && onlineRoomState.mode === 'guest' && onlineRoomState.hostConn === conn){
         cleanupRoomState(true);
-        openRandomMatchPanel();
+        openTitleMenu();
         setRoomStatus(roomJoinStatus, '部屋との接続が切れました', 'err');
       }
     });
@@ -12551,12 +12579,18 @@ chatInputText.addEventListener('keydown', e=>{
   if(e.key === 'Enter'){ e.preventDefault(); submitOnlineChatInput(); }
   else if(e.key === 'Escape'){ e.preventDefault(); closeOnlineChatInput(); }
 });
-document.getElementById('openCreateRoomBtn').addEventListener('click', ()=>{ clearRoomUiMessages(); resetRoomFormToDefaults(); onlineMatchPanel.style.display = 'none'; roomJoinPanel.style.display = 'none'; roomCreatePanel.style.display = 'block'; });
-document.getElementById('openJoinRoomBtn').addEventListener('click', ()=>{ clearRoomUiMessages(); onlineMatchPanel.style.display = 'none'; roomCreatePanel.style.display = 'none'; roomJoinPanel.style.display = 'block'; refreshPublicRoomList(); });
-document.getElementById('roomCreateBackBtn').addEventListener('click', ()=>{ roomCreatePanel.style.display = 'none'; openRandomMatchPanel(); });
+document.getElementById('openCreateRoomBtn').addEventListener('click', ()=>{
+  try{ openCreateRoomPanel(); }
+  catch(err){ console.error(err); openTitleMenu(); }
+});
+document.getElementById('openJoinRoomBtn').addEventListener('click', ()=>{
+  try{ openJoinRoomPanel(); }
+  catch(err){ console.error(err); openTitleMenu(); }
+});
+document.getElementById('roomCreateBackBtn').addEventListener('click', ()=>{ openTitleMenu(); });
 document.getElementById('roomCreateOpenBtn').addEventListener('click', startCreateRoom);
 document.getElementById('roomLeaveBtn').addEventListener('click', ()=> closeActiveRoom(onlineRoomState.mode === 'host' ? '部屋を閉じました' : '部屋を退出しました', true));
-document.getElementById('roomJoinBackBtn').addEventListener('click', ()=>{ roomJoinPanel.style.display = 'none'; openRandomMatchPanel(); });
+document.getElementById('roomJoinBackBtn').addEventListener('click', ()=>{ openTitleMenu(); });
 document.getElementById('roomRefreshBtn').addEventListener('click', refreshPublicRoomList);
 document.getElementById('roomJoinByKeyBtn').addEventListener('click', ()=> joinRoomByCode(roomJoinKeyInput.value));
 
@@ -15688,15 +15722,10 @@ function onOnlineMatched(conn, weAreHost){
   });
 }
 document.getElementById('onlineMatchBtn').addEventListener('click', ()=>{
-  menuPanel.style.display = 'none';
-  onlineMatchPanel.style.display = 'block';
-  onlineMatchIdle.style.display = 'block';
-  onlineMatchSearching.style.display = 'none';
-  onlineMatchConnected.style.display = 'none';
+  openRandomMatchPanel();
 });
 document.getElementById('onlineMatchBackBtn').addEventListener('click', ()=>{
-  onlineMatchPanel.style.display = 'none';
-  menuPanel.style.display = 'block';
+  openTitleMenu();
 });
 document.getElementById('onlineMatchStartBtn').addEventListener('click', ()=>{
   onlineSettings = readOnlineSettings();
