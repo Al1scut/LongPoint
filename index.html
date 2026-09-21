@@ -11636,8 +11636,11 @@ function stepOnce(dt){
 function updateHealthUI(){
   // campaign (and SOLO DUEL) has its own dedicated restart overlay (see
   // showCampaignDeath/showSoloDuelDeath) - showing the normal mode's plain "DEAD" text
-  // underneath it too would just be visual clutter
-  deadMsg.style.display = (ragdoll.dead && !campaignMode && !soloDuelMode) ? 'block' : 'none';
+  // underneath it too would just be visual clutter. Online matches likewise get their
+  // own result overlay (see finishOnlineMatch) once the match is decided, and until
+  // then a dead player is just waiting to be revived/for the match to end - so this
+  // plain "DEAD" text has no business appearing there either
+  deadMsg.style.display = (ragdoll.dead && !campaignMode && !soloDuelMode && !onlineMode) ? 'block' : 'none';
   if(ragdoll.dead){
     deadStats.textContent = `撃破数: ${playerKills} / 切断数: ${playerSevers} / 到達ウェーブ: ${waveNumber}`;
   }
@@ -14595,6 +14598,10 @@ function serializeCharacter(character, full=true){
     const hp = {}, bleed = {};
     for(const k in character.parts){ hp[k] = Math.round(character.parts[k].hp*10)/10; bleed[k] = Math.round(character.parts[k].bleed*100)/100; }
     out.hp = hp; out.bleed = bleed; out.stamina = character.stamina;
+    // bloodLoss never advances locally on the guest (it has no physics authority, see
+    // the big comment above the online-match section), so without syncing it here the
+    // guest's own bloodVignette (see updateBloodVignette) would just sit at 0 forever
+    out.bloodLoss = Math.round(character.bloodLoss*10)/10;
   }
   return out;
 }
@@ -14683,6 +14690,7 @@ function applySerializedCharacter(character, snap){
   // spawns the way the discrete wound-impact events are (see spawnWound's relay)
   if(snap.bleed) for(const k in snap.bleed) if(character.parts[k]) character.parts[k].bleed = snap.bleed[k];
   if(typeof snap.stamina === 'number') character.stamina = snap.stamina;
+  if(typeof snap.bloodLoss === 'number') character.bloodLoss = snap.bloodLoss;
   if(snap.weapon) applyOnlineHeldWeapon(character, snap.weapon);
 }
 function smoothOnlineCharacter(character, dt){
