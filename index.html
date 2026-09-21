@@ -700,7 +700,7 @@
   <div id="onlineMatchPanel" class="centerPanel">
     <h2>ONLINE MATCH</h2>
     <div id="onlineMatchIdle">
-      <p id="onlineMatchInfo">ランダムな相手とマッチングします。合言葉やコードの入力は不要です。マッチング後はホストになった側の設定が両者に適用されます。対戦中はGキーでボス「GO」を召喚できます（一定時間ごとにクールダウン）。</p>
+      <p id="onlineMatchInfo">ランダムな相手とマッチングします。合言葉やコードの入力は不要です。マッチング後はホストになった側の設定が両者に適用されます。</p>
       <div class="setupSectionLabel">出現武器</div>
       <div class="setupWeapons" id="onlineWeaponList"></div>
       <div class="setupSectionLabel">出現防具</div>
@@ -710,7 +710,6 @@
       <label><span>HP倍率</span><span><input type="range" id="onlineHpMul" min="50" max="200" step="5" value="100"> <span id="onlineHpMulVal">100%</span></span></label>
       <label><span>スタミナ倍率</span><span><input type="range" id="onlineStaminaMul" min="50" max="200" step="5" value="100"> <span id="onlineStaminaMulVal">100%</span></span></label>
       <label><span>ランダムな壁の数</span><span><input type="range" id="onlineWallCount" min="0" max="40" step="1" value="0"> <span id="onlineWallCountVal">0</span></span></label>
-      <label><span>無限リスポーンするCPUの数</span><span><input type="range" id="onlineCpuCount" min="0" max="12" step="1" value="0"> <span id="onlineCpuCountVal">0</span></span></label>
       <div class="setupActions">
         <div class="menuItem" id="onlineMatchBackBtn">戻る</div>
         <div class="menuItem" id="onlineMatchStartBtn">マッチング開始</div>
@@ -3063,9 +3062,8 @@ function nearestOther(self, pool){
 // campaign (the one and only possible target there, and what all that code was
 // originally written assuming), but the same "nearest living fighter" pick its ordinary
 // melee AI already uses in a free-for-all (see updateEnemyAI's own `target` line) once
-// the boss can show up in an online match too (see GO/trySummonOnlineBoss), where the
-// player it should threaten might be the guest, or one of this match's CPU bots, just
-// as easily as the host
+// the boss can show up in an online match too, where the
+// player it should threaten might be the guest just as easily as the host
 function bossTarget(en){
   return campaignMode ? ragdoll : (nearestOther(en, allCharacters) || ragdoll);
 }
@@ -5409,9 +5407,6 @@ function paintBandage(meshSet, region){
 function onlineWhoFor(character){
   if(character===ragdoll) return {who:'host'};
   if(character===remotePlayer) return {who:'guest'};
-  if(character && character===onlineBoss) return {who:'boss'};
-  const botIdx = character ? onlineCpuBots.indexOf(character) : -1;
-  if(botIdx>=0) return {who:'bot', botIdx};
   // null character (an ambient, non-positional sfx) or some other character entirely -
   // playSfx still wants this relayed with who:null; spawnWound never fires for
   // anything but a real online-match character, so its own call site guards on `who`
@@ -9740,13 +9735,6 @@ window.addEventListener('keydown', e=>{
     }
     endOnlineMatch();
   }
-  // GO - summons the campaign boss into an online match as a mid-fight wildcard, for
-  // either player (host-authoritative like everything else - the guest's press just
-  // asks; see trySummonOnlineBoss/handleOnlineData's 'summonBoss' case)
-  if((e.key==='g' || e.key==='G') && onlineMode){
-    if(onlineIsHost) trySummonOnlineBoss();
-    else if(onlineConn && onlineConn.open) onlineConn.send({type:'summonBoss'});
-  }
   // Z is double-duty: lock-on toggle while alive, free-cam descend once dead (see
   // updateFreeCamera) - gated here so holding it to fly down doesn't also spam-toggle
   // a lock-on state that no longer does anything
@@ -11562,17 +11550,9 @@ function stepOnce(dt){
     updateOnlineMatchProgress(dt);
     smoothOnlineCharacter(ragdoll, dt);
     if(remotePlayer) smoothOnlineCharacter(remotePlayer, dt);
-    for(const bot of onlineCpuBots) smoothOnlineCharacter(bot, dt);
-    if(onlineBoss) smoothOnlineCharacter(onlineBoss, dt);
     for(const c of allCharacters){ if(c.invulnT>0) c.invulnT = Math.max(0, c.invulnT-dt); }
     updateBlood(ragdoll, dt);
     if(remotePlayer) updateBlood(remotePlayer, dt);
-    for(const bot of onlineCpuBots) updateBlood(bot, dt);
-    if(onlineBoss){
-      updateOnlineBossBeamCosmetic(onlineBoss, dt);
-      updateOnlineBossOrbitsCosmetic(onlineBoss, dt);
-      updateOnlineBossTeleportCosmetic(onlineBoss, dt);
-    }
     updateDroplets(dt);
     updateWounds();
     updateLimbDebris(dt);
@@ -11595,8 +11575,7 @@ function stepOnce(dt){
   updateMusketBullets(dt);
   updateSmokePuffs(dt);
   // in an online match the host drives remotePlayer purely off the guest's relayed
-  // input (no AI at all), but still runs real AI for every CPU bot exactly like a
-  // normal wave/campaign enemy - see spawnOnlineCpuBots
+  // input (no AI at all)
   if(onlineMode){
     driveRemotePlayerFromInput(dt);
     for(const en of enemies){ if(en!==remotePlayer) updateEnemyAI(en, dt); }
@@ -11877,9 +11856,6 @@ onlineStaminaMul.addEventListener('input', ()=>{ onlineStaminaMulVal.textContent
 const onlineWallCount = document.getElementById('onlineWallCount');
 const onlineWallCountVal = document.getElementById('onlineWallCountVal');
 onlineWallCount.addEventListener('input', ()=>{ onlineWallCountVal.textContent = onlineWallCount.value; });
-const onlineCpuCount = document.getElementById('onlineCpuCount');
-const onlineCpuCountVal = document.getElementById('onlineCpuCountVal');
-onlineCpuCount.addEventListener('input', ()=>{ onlineCpuCountVal.textContent = onlineCpuCount.value; });
 // read once, right as matchmaking is kicked off - only the eventual HOST's copy of
 // this ever actually governs the match (see onOnlineMatched/phase 4); the guest's own
 // selections here are discarded in favor of whatever the host sends over
@@ -11896,7 +11872,6 @@ function readOnlineSettings(){
     hpMul: parseInt(onlineHpMul.value,10)/100,
     staminaMul: parseInt(onlineStaminaMul.value,10)/100,
     wallCount: parseInt(onlineWallCount.value,10),
-    cpuCount: parseInt(onlineCpuCount.value,10),
   };
 }
 let onlineSettings = null;
@@ -14107,34 +14082,112 @@ function isNameAppropriate(name, words){
   const n = normalizeForNameCheck(name);
   return !words.some(w=>n.includes(w));
 }
+// ---- name uniqueness across all players ----
+// There's no game server, so uniqueness lives in Supabase (plain REST via fetch, no SDK).
+// Fill in SUPABASE_URL (Project Settings > API > Project URL, e.g.
+// 'https://xxxx.supabase.co') and SUPABASE_ANON_KEY (the anon / publishable key - it's
+// meant to be public). The two SQL functions it calls (see the setup notes) are the only
+// thing the anon key can reach: the table itself has no policies, so nobody can list or
+// edit the names directly. While either value is '' the uniqueness check is skipped
+// (names still work, just without the duplicate check).
+const SUPABASE_URL = 'https://owkxuajctjbezlfdkxmt.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_O01N-ubZczKQ6ukmipEXHg_7eZ2EGX-';
+const PLAYER_NAME_TOKEN_KEY = 'longPointNameToken_v1';
+function nameRegistryConfigured(){ return !!(SUPABASE_URL && SUPABASE_ANON_KEY); }
+// case/width/kana-insensitive (same normalisation as the word filter), hex-encoded so the
+// key is always plain [0-9a-f] ("Taro", "ＴＡＲＯ" and "taro" all collide)
+function nameRegistryKey(name){
+  const bytes = new TextEncoder().encode(normalizeForNameCheck(name));
+  return Array.from(bytes, b=>b.toString(16).padStart(2,'0')).join('');
+}
+// random per-browser id stored with the claimed name, so the same player re-checking their
+// own name later can tell "mine" from "someone else's"
+function getNameToken(){
+  let t = null;
+  try{ t = localStorage.getItem(PLAYER_NAME_TOKEN_KEY); }catch(e){}
+  if(!t){
+    t = Array.from(crypto.getRandomValues(new Uint8Array(16)), b=>b.toString(16).padStart(2,'0')).join('');
+    try{ localStorage.setItem(PLAYER_NAME_TOKEN_KEY, t); }catch(e){}
+  }
+  return t;
+}
+async function nameRegistryRpc(fn, args){
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), 8000);
+  try{
+    const headers = {'Content-Type':'application/json', 'apikey':SUPABASE_ANON_KEY};
+    // legacy anon keys are JWTs and go in Authorization too; the newer sb_publishable_
+    // keys must only be sent as `apikey`
+    if(SUPABASE_ANON_KEY.startsWith('eyJ')) headers['Authorization'] = 'Bearer '+SUPABASE_ANON_KEY;
+    const r = await fetch(`${SUPABASE_URL.replace(/\/+$/,'')}/rest/v1/rpc/${fn}`, {
+      method:'POST', headers, body:JSON.stringify(args), signal:ctrl.signal,
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  } finally { clearTimeout(timer); }
+}
+// -> 'free' | 'mine' | 'taken'; throws when Supabase can't be reached
+async function checkNameRegistry(name){
+  if(!nameRegistryConfigured()) return 'free';
+  const res = await nameRegistryRpc('check_player_name', {p_key:nameRegistryKey(name), p_tok:getNameToken()});
+  if(res==='free' || res==='mine' || res==='taken') return res;
+  throw new Error('unexpected: '+res);
+}
+// -> 'ok' | 'taken'; throws when Supabase can't be reached. The insert happens in one
+// statement inside the database (primary key on the name), so two people claiming at the
+// same moment can't both win
+async function claimNameInRegistry(name){
+  if(!nameRegistryConfigured()) return 'ok';
+  const res = await nameRegistryRpc('claim_player_name', {p_key:nameRegistryKey(name), p_name:name, p_tok:getNameToken()});
+  if(res==='ok' || res==='mine') return 'ok';
+  if(res==='taken') return 'taken';
+  throw new Error('unexpected: '+res);
+}
 function initNameGate(){
   updatePlayerProfile();
-  if(playerName) return;
   const screen = document.getElementById('nameEntryScreen');
   const input = document.getElementById('nameEntryInput');
   const errEl = document.getElementById('nameEntryError');
   const btn = document.getElementById('nameEntrySubmit');
   let busy = false;
+  function showError(msg){ errEl.style.color = '#e05555'; errEl.textContent = msg; }
   async function submit(){
     if(busy) return;
     const raw = input.value.trim();
     const fmtErr = nameFormatError(raw);
-    if(fmtErr){ errEl.textContent = fmtErr; return; }
+    if(fmtErr){ showError(fmtErr); return; }
     busy = true; errEl.style.color = '#9db0c8'; errEl.textContent = '確認中…';
     let words;
     try{ words = await ensureBadWords(); }
     catch(e){
-      errEl.style.color = '#e05555';
-      errEl.textContent = '不適切ワードリストを読み込めませんでした。ネット接続を確認してもう一度お試しください';
+      showError('不適切ワードリストを読み込めませんでした。ネット接続を確認してもう一度お試しください');
       busy = false; return;
     }
-    errEl.style.color = '#e05555';
     if(!isNameAppropriate(raw, words)){
-      errEl.textContent = 'この名前は使用できません';
+      showError('この名前は使用できません');
+      busy = false; return;
+    }
+    let avail;
+    try{ avail = await checkNameRegistry(raw); }
+    catch(e){
+      showError('名前の登録サーバーに接続できませんでした。ネット接続を確認してもう一度お試しください');
+      busy = false; return;
+    }
+    if(avail==='taken'){
+      showError('この名前はすでに他のユーザーに使われています');
       busy = false; return;
     }
     errEl.textContent = '';
     if(!confirm(`「${raw}」に決定します。\nあとから変更できません。よろしいですか？`)){ busy = false; return; }
+    try{
+      if(avail!=='mine' && (await claimNameInRegistry(raw))==='taken'){
+        showError('この名前は直前に他のユーザーに使われました。別の名前にしてください');
+        busy = false; return;
+      }
+    }catch(e){
+      showError('名前の登録に失敗しました。もう一度お試しください');
+      busy = false; return;
+    }
     playerName = raw;
     try{ localStorage.setItem(PLAYER_NAME_KEY, raw); }catch(e){}
     screen.style.display = 'none';
@@ -14143,8 +14196,30 @@ function initNameGate(){
   }
   btn.addEventListener('click', submit);
   input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); submit(); } });
-  screen.style.display = 'flex';
-  input.focus();
+  function openNameEntry(message){
+    input.value = '';
+    if(message) showError(message); else errEl.textContent = '';
+    screen.style.display = 'flex';
+    input.focus();
+  }
+  if(!playerName){ openNameEntry(); return; }
+  // a name chosen before uniqueness existed (or while offline) may never have been
+  // registered: claim it now if it's still free, and if somebody else already holds it,
+  // the name has to be picked again (fame is kept)
+  if(nameRegistryConfigured()){
+    (async ()=>{
+      try{
+        const st = await checkNameRegistry(playerName);
+        if(st==='free') await claimNameInRegistry(playerName);
+        else if(st==='taken'){
+          playerName = null;
+          try{ localStorage.removeItem(PLAYER_NAME_KEY); }catch(e){}
+          updatePlayerProfile();
+          openNameEntry('以前の名前は他のユーザーに使われていました。別の名前を決めてください');
+        }
+      }catch(e){ /* offline right now - just retry on the next launch */ }
+    })();
+  }
 }
 // the opponent's name arrives over the wire (untrusted) - shown only if it passes the
 // exact same format + word-list check as our own; otherwise '???'
@@ -14223,25 +14298,6 @@ let onlineMode = false;
 let remotePlayer = null;
 let remotePlayerMeshSet = null;
 let onlineNetTimer = null;
-// this match's CPU-controlled bots (see spawnOnlineCpuBots) - real AI-driven fighters on
-// the host, purely cosmetic snapshot-driven dummies on the guest, exactly like
-// remotePlayer itself. Index-matched between host and guest (both sides create exactly
-// cfg.cpuCount of them, in order, right in startOnlineMatch), so the snapshot can sync
-// them by array position instead of needing a stable id the way ground items do
-let onlineCpuBots = [];
-// this match's summoned GO boss (see trySummonOnlineBoss) - unlike remotePlayer/the CPU
-// bots, this doesn't exist from the start of the match; it's null until a player
-// actually calls it in (G key), and gets torn back down (not respawned) a few seconds
-// after it dies, going back to null until the cooldown clears and someone summons it
-// again
-let onlineBoss = null;
-let onlineBossMeshSet = null;
-// seconds left before GO can be summoned again - only ever ticks/matters host-side
-// (see updateOnlineMatchProgress); the guest's own G press always just asks the host,
-// regardless of what it locally thinks the cooldown is
-let onlineBossCooldownT = 0;
-const ONLINE_BOSS_DESPAWN_DELAY = 5; // corpse lingers this long after GO dies before being cleared away
-const ONLINE_BOSS_COOLDOWN = 25; // before it can be summoned again after that
 const ONLINE_TICK_MS = 33; // host snapshot rate ~30Hz (was 20Hz)
 const ONLINE_INPUT_MS = 16; // guest input rate ~60Hz - input latency is what the guest feels most
 // how long a downed fighter (player or CPU bot) lies there before popping back up -
@@ -14272,184 +14328,6 @@ function ensureRemotePlayer(){
   remotePlayer.isRemotePlayer = true; // updateEnemyAI is never called for it (see stepOnce) - driven by relayed input instead
   wireEnemyCallbacks(remotePlayer);
   remotePlayerMeshSet = makeCharacterMeshes({skin:0xf2e6d3, cloth:0x3a6ea5, clothDark:0x2c527d, shoe:0x333333}, 1, false, false);
-}
-// (re)builds this match's roster of CPU bots, exactly `count` of them - called on BOTH
-// sides in startOnlineMatch, since cfg.cpuCount is already agreed (it rides along with
-// every other online setting in matchConfig), so both sides create the same number in
-// the same order without needing to negotiate it separately, same idea as remotePlayer.
-// On the host these are real AI-driven fighters (updateEnemyAI runs on them every
-// frame - see stepOnce); on the guest they're purely cosmetic, driven entirely by
-// applySerializedCharacter off the host's snapshot, same as remotePlayer is. Torn back
-// down (not just hidden) by teardownOnlineCpuBots at the end of every match, since the
-// count can differ next time
-function spawnOnlineCpuBots(count){
-  onlineCpuBots = [];
-  for(let i=0;i<count;i++){
-    // deterministic off i/count alone (no Math.random() here) so host and guest - who
-    // each run this same function independently, never over the wire - land on the
-    // exact same initial ring layout without having to wait for the first snapshot to
-    // correct a mismatch. Their real position takes over immediately either way once
-    // the host's AI starts moving them (or, on the guest, once the snapshot arrives),
-    // so this only matters for the one very first rendered frame
-    const ang = (i/Math.max(1,count))*Math.PI*2;
-    const dist = 900;
-    const en = new Ragdoll(Math.cos(ang)*dist, Math.sin(ang)*dist);
-    snapRagdollRest(en);
-    en.ai = {state:'circle', timer:0};
-    en.autoRecenter = true;
-    wireEnemyCallbacks(en);
-    applyStatMul(en, 1);
-    // guest-side dummies stay bare-handed until the very first snapshot equips them
-    // (see applyOnlineHeldWeapon) - equipping here too would just mean immediately
-    // replacing whatever got randomly picked with the host's real choice
-    if(onlineIsHost) equipRandomLoadout(en);
-    const pal = ENEMY_PALETTE[i % ENEMY_PALETTE.length];
-    const meshSet = makeCharacterMeshes({ skin:0xd9a878, cloth:pal.cloth, clothDark:pal.dark, shoe:0x222222 });
-    enemies.push(en);
-    enemyMeshSets.push(meshSet);
-    allCharacters.push(en);
-    onlineCpuBots.push(en);
-  }
-}
-// tears every current CPU bot back out of the scene and the tracking arrays entirely -
-// called at the end of every online match (see endOnlineMatch). Unlike remotePlayer
-// (always exactly one, reused across matches) the bot roster's size can change match to
-// match, so it's simpler to just rebuild it from scratch each time than to try to
-// resize a persistent pool
-function teardownOnlineCpuBots(){
-  for(const bot of onlineCpuBots){
-    stopPleadVoiceLoop(bot); // same reasoning as clearAllEnemies' own identical call
-    if(bot.heldL){ const idx=items.indexOf(bot.heldL); if(idx>=0){ scene.remove(bot.heldL.mesh); items.splice(idx,1); } }
-    if(bot.heldR && bot.heldR!==bot.heldL){ const idx=items.indexOf(bot.heldR); if(idx>=0){ scene.remove(bot.heldR.mesh); items.splice(idx,1); } }
-    const idx = enemies.indexOf(bot);
-    if(idx>=0){
-      const meshSet = enemyMeshSets[idx];
-      for(const k in meshSet){ const m=meshSet[k]; if(m && m.isObject3D) scene.remove(m); }
-      enemies.splice(idx,1);
-      enemyMeshSets.splice(idx,1);
-    }
-    const cIdx = allCharacters.indexOf(bot);
-    if(cIdx>=0) allCharacters.splice(cIdx,1);
-  }
-  onlineCpuBots = [];
-}
-// host-only: actually calls GO in, if it's allowed to right now - either from the
-// host's own G press (see the keydown handler) or relayed from the guest's (see
-// handleOnlineData's 'summonBoss' case). A no-op while one's already out, or still on
-// cooldown from the last one's death (see ONLINE_BOSS_COOLDOWN) - so mashing the key
-// can't stack multiple, and killing it doesn't let it come right back immediately
-function trySummonOnlineBoss(){
-  if(!onlineIsHost || !onlineMode || !remotePlayer) return;
-  if(onlineBoss || onlineBossCooldownT>0) return;
-  // drops in near the middle of wherever the fight actually is right now, not a fixed
-  // point on the map - both players' current position, not their original spawn points
-  const midX = (ragdoll.hip.x+remotePlayer.hip.x)/2, midZ = (ragdoll.hip.z+remotePlayer.hip.z)/2;
-  const ang = Math.random()*Math.PI*2;
-  const x = midX + Math.cos(ang)*450, z = midZ + Math.sin(ang)*450;
-  onlineBoss = spawnBoss(x, z);
-  onlineBossMeshSet = enemyMeshSets[enemies.indexOf(onlineBoss)];
-  if(onlineConn && onlineConn.open) onlineConn.send({type:'bossSummon', x, z});
-}
-// tears GO back out of the scene and every tracking array entirely, on either side -
-// the host calls this itself once its corpse has finished lingering (see
-// updateOnlineBossDespawn) and tells the guest to do the same; the guest only ever
-// calls it in response to that message, never on its own initiative
-function teardownOnlineBoss(){
-  if(!onlineBoss) return;
-  // the beam's own mesh/light/charge-particle pool (see ensureBeamVisual/
-  // getBeamParticlePool) are separate scene objects, lazily created OUTSIDE the normal
-  // meshSet the moment the beam is first ever used - never destroyed between casts
-  // (only hidden - see hideBossBeam), so without this they'd linger in the scene
-  // forever the instant GO is torn down having ever fired it once, on either side
-  teardownBossBeamFx(onlineBoss);
-  // usually already empty by now - the real boss's own die() clears its orbit swarm
-  // immediately on death (see teardownBossOrbits), well before this ever runs - but a
-  // guest's mirror array might not have caught up to an empty snapshot yet, so clean up
-  // defensively rather than ever risk leaking an orbit's meshes
-  teardownBossOrbits(onlineBoss);
-  if(onlineBoss.heldL){ const idx=items.indexOf(onlineBoss.heldL); if(idx>=0){ scene.remove(onlineBoss.heldL.mesh); items.splice(idx,1); } }
-  if(onlineBoss.heldR && onlineBoss.heldR!==onlineBoss.heldL){ const idx=items.indexOf(onlineBoss.heldR); if(idx>=0){ scene.remove(onlineBoss.heldR.mesh); items.splice(idx,1); } }
-  const idx = enemies.indexOf(onlineBoss);
-  if(idx>=0){
-    const meshSet = enemyMeshSets[idx];
-    for(const k in meshSet){ const m=meshSet[k]; if(m && m.isObject3D) scene.remove(m); }
-    enemies.splice(idx,1);
-    enemyMeshSets.splice(idx,1);
-  }
-  const cIdx = allCharacters.indexOf(onlineBoss);
-  if(cIdx>=0) allCharacters.splice(cIdx,1);
-  onlineBoss = null;
-  onlineBossMeshSet = null;
-}
-// host-only: watches GO's cooldown tick down, and clears its corpse away (starting that
-// cooldown) once it's been lying dead for a while - called every frame alongside the
-// player/bot respawn updates (see updateOnlineMatchProgress). GO never respawns the way
-// the infinite CPU bots do; it just goes away until summoned again
-function updateOnlineBossDespawn(dt){
-  if(onlineBossCooldownT>0) onlineBossCooldownT = Math.max(0, onlineBossCooldownT-dt);
-  if(!onlineBoss || !onlineBoss.dead) return;
-  onlineBoss._despawnT = (onlineBoss._despawnT||0) + dt;
-  if(onlineBoss._despawnT > ONLINE_BOSS_DESPAWN_DELAY){
-    teardownOnlineBoss();
-    onlineBossCooldownT = ONLINE_BOSS_COOLDOWN;
-    if(onlineConn && onlineConn.open) onlineConn.send({type:'bossRemove'});
-  }
-}
-// the beam ultimate's own visuals (the charge-up sparkle particles and the laser mesh/
-// light itself, see positionBossBeamVisual/updateBeamChargeParticles) only ever used to
-// get driven from inside updateEnemyAI - which never runs at all on an online guest (no
-// combat authority - see the online-match section), so a beam the host actually fired
-// would go completely invisible on the guest's screen: hand pose and body position DO
-// already come through fine (lHand/rHand/chest/facingYaw all ride along in every normal
-// character snapshot), but the beam mesh/light and the charge sparkles are separate
-// THREE objects nothing ever told the guest to create or update, and the crossed-blade
-// grip (see syncItem's beamPose branch) never got set on the guest's own ghost weapon
-// Items either. This is the guest-only cosmetic counterpart: driven off the aiState/
-// specialT the host now includes in every snapshot (see serializeBossExtra/
-// applyOnlineBossExtra), it reproduces the same charge -> fire -> hide visual timeline
-// locally every frame, advancing its own copy of specialT between snapshots for smooth
-// 60fps playback rather than only updating at the 20Hz network rate - purely cosmetic,
-// no hit detection, ever
-function updateOnlineBossBeamCosmetic(en, dt){
-  if(!en || !en.ai) return;
-  // a boss that dies mid-cast never gets another updateEnemyAI tick on the host either
-  // (the dead/mode!=='walk' gate returns before ever reaching the beam dispatch again -
-  // see updateEnemyAI), so ai.state simply freezes at whatever it was and keeps
-  // reporting 'bossBeamCharge'/'bossBeamFire' in every later snapshot forever. The
-  // host's own real beam visual already gets torn down on death regardless (die()
-  // calls teardownBossBeamFx directly), but the guest has no other signal that it
-  // should stop - so it needs its own explicit death check here rather than trusting
-  // the stale ai.state
-  if(en.dead){ hideBeamParticles(en); hideBossBeam(en); return; }
-  const ai = en.ai;
-  if(ai.state==='bossBeamCharge'){
-    ai.specialT = (ai.specialT||0) + dt;
-    updateBeamChargeParticles(en, dt, Math.min(1, ai.specialT/BOSS_BEAM_CHARGE_DUR));
-  } else if(ai.state==='bossBeamFire'){
-    ai.specialT = (ai.specialT||0) + dt;
-    hideBeamParticles(en);
-    positionBossBeamVisual(en);
-  } else {
-    hideBeamParticles(en);
-    hideBossBeam(en);
-  }
-}
-// the teleport's "noise runs across it, then it's simply elsewhere" glitch-flicker (see
-// updateBossTeleport/flickerBossMeshes) is likewise only ever driven from inside
-// updateEnemyAI - host-only. The actual teleport itself (the position jump, and the new
-// facingYaw it lands facing) already comes through fine via the ordinary per-character
-// snapshot every character gets, same as any other movement - what's missing is purely
-// the rapid on/off visibility toggle that telegraphs it, which is cosmetic-only and
-// costs nothing to reproduce locally off the same aiState/specialT the beam cosmetic
-// above already relies on. meshSetFor (which flickerBossMeshes uses internally) already
-// resolves correctly for either side, so this is the whole fix
-function updateOnlineBossTeleportCosmetic(en, dt){
-  if(!en || !en.ai) return;
-  const ai = en.ai;
-  if(ai.state==='bossTeleOut' || ai.state==='bossTeleIn'){
-    ai.specialT = (ai.specialT||0) + dt;
-    flickerBossMeshes(en, Math.sin(ai.specialT*90) > 0);
-  }
 }
 // generic "pop back up" for any online-match fighter (a player or a CPU bot): rebuilds
 // the whole skeleton from a fresh standing Ragdoll (same trick resetPlayerForStage
@@ -14579,9 +14457,6 @@ function endOnlineMatch(){
     scene.remove(local.mesh);
   }
   onlineGroundItemsById.clear();
-  teardownOnlineCpuBots();
-  teardownOnlineBoss();
-  onlineBossCooldownT = 0;
   // remotePlayer itself is kept around (its meshes just hidden, not destroyed) so a
   // rematch can reuse the same instance via ensureRemotePlayer's own "already exists"
   // check - only pulled out of the tracking arrays here. Leaving it in `enemies`
@@ -14618,20 +14493,6 @@ function updateOnlineMatchProgress(dt){
       declareOnlineResult(hostDead && guestDead ? 'draw' : (guestDead ? 'host' : 'guest'));
     }
   }
-  for(let i=0;i<onlineCpuBots.length;i++) updateOnlineBotRespawn(onlineCpuBots[i], i, dt);
-  updateOnlineBossDespawn(dt);
-}
-function updateOnlineBotRespawn(bot, idx, dt){
-  if(!bot.dead){ bot._onlineRespawnT = 0; return; }
-  bot._onlineRespawnT = (bot._onlineRespawnT||0) + dt;
-  if(bot._onlineRespawnT < ONLINE_RESPAWN_DELAY) return;
-  bot._onlineRespawnT = 0;
-  const ang = Math.random()*Math.PI*2, dist = 700 + Math.random()*500;
-  reviveOnlineCharacterShape(bot, Math.cos(ang)*dist, Math.sin(ang)*dist);
-  applyStatMul(bot, 1);
-  equipRandomLoadout(bot);
-  bot.ai = {state:'circle', timer:0};
-  if(onlineConn && onlineConn.open) onlineConn.send({type:'revive', who:'bot', botIdx:idx});
 }
 // called once both sides agree on the settings (see onOnlineMatched/handleOnlineData) -
 // deliberately starts play immediately rather than waiting on a separate "ready"
@@ -14651,11 +14512,6 @@ function startOnlineMatch(){
   enemyMeshSets.push(remotePlayerMeshSet);
   allCharacters.push(remotePlayer);
   ragdoll.dead = false; remotePlayer.dead = false;
-  // both sides already agree on cfg.cpuCount (it rides along in matchConfig with
-  // everything else) - see spawnOnlineCpuBots for why creating the same count in the
-  // same order here, on both sides, is enough to keep them snapshot-index-synced
-  // without needing a separate negotiation the way the wall layout needed one
-  spawnOnlineCpuBots(cfg.cpuCount||0);
   // the spawn points themselves (like the walls) were already decided (host) or
   // received (guest) back in onOnlineMatched, well before this ever runs - see its own
   // comment on why that can't wait until here
@@ -14856,107 +14712,15 @@ function serializeGroundItems(){
   }
   return out;
 }
-// everything about GO the guest's regular serializeCharacter sync doesn't already
-// cover: which AI state it's actually in (so the guest knows whether to show the beam's
-// charge sparkles / the beam itself at all - see updateOnlineBossBeamCosmetic) and how
-// far into that state it is (so the charge sparkle density ramps at the same rate the
-// host's own does), plus the crossed-blade beamPose flag each held weapon needs (see
-// syncItem's beamPose branch) and the post-beam crouch pose - none of which ride along
-// in the generic per-part hp/position/weapon-kind snapshot every character gets
-function serializeBossExtra(en){
-  return {
-    aiState: en.ai.state, specialT: en.ai.specialT||0,
-    beamPoseL: !!(en.heldL && en.heldL.beamPose), beamPoseR: !!(en.heldR && en.heldR.beamPose),
-    isCrouching: !!en.isCrouching,
-  };
-}
-// the orbit swarm (see spawnBossOrbits) is entirely absent from serializeCharacter (it's
-// not a character at all) - every orbit's own position/state/timer/locked aim direction,
-// in array order. Always the same length as onlineBoss.orbits, which only ever changes
-// by orbits appearing (a whole fresh batch at once) or disappearing (one at a time as
-// each finishes its 5th cycle, or the whole batch at once if the boss dies) - so the
-// guest can just grow/shrink its own mirror array to match every snapshot (see
-// applyOnlineBossOrbits) rather than needing a stable id the way ground items do
-function serializeBossOrbits(en){
-  if(!en.orbits) return [];
-  return en.orbits.map(o=>({x:o.x, y:o.y, z:o.z, state:o.state, t:o.t, cycle:o.cycle, aimDirX:o.aimDirX, aimDirZ:o.aimDirZ, faceX:o.faceX, faceY:o.faceY, faceZ:o.faceZ}));
-}
 let onlineSnapN = 0;
 function broadcastOnlineSnapshot(){
   // slow-changing data (HP/bleed/stamina, ground items) only every 4th snapshot
   const full = (onlineSnapN++ % 4)===0;
   const pkt = {
     type:'snapshot', host:serializeCharacter(ragdoll, full), guest:serializeCharacter(remotePlayer, full),
-    bots: onlineCpuBots.map(b=>serializeCharacter(b, full)),
-    boss: onlineBoss ? serializeCharacter(onlineBoss, full) : null,
-    bossExtra: onlineBoss ? serializeBossExtra(onlineBoss) : null,
-    orbits: onlineBoss ? serializeBossOrbits(onlineBoss) : [],
   };
   if(full) pkt.groundItems = serializeGroundItems();
   onlineConn.send(pkt);
-}
-// guest-side counterpart to serializeBossExtra - resyncs the mirrored ai.state/specialT
-// this machine's own cosmetic beam updater reads every frame (see
-// updateOnlineBossBeamCosmetic), and the weapon beamPose flags syncItem reads when
-// orienting the swords. Correcting these every snapshot (not just once) keeps the local
-// specialT the cosmetic updater free-runs between snapshots from drifting far off the
-// host's real value
-function applyOnlineBossExtra(en, extra){
-  if(!en || !extra) return;
-  en.ai.state = extra.aiState;
-  en.ai.specialT = extra.specialT;
-  if(en.heldL) en.heldL.beamPose = extra.beamPoseL;
-  if(en.heldR) en.heldR.beamPose = extra.beamPoseR;
-  en.isCrouching = extra.isCrouching;
-}
-// guest-side counterpart to serializeBossOrbits - grows/shrinks its own mirror array to
-// match the incoming list's length (creating a fresh visual for any new orbit, tearing
-// down any that vanished), then hard-syncs every field on whatever's left. Purely
-// cosmetic, like every other online-boss mirror here - no targeting, no hit detection,
-// ever (see updateOnlineBossOrbitsCosmetic for the per-frame animation half)
-function applyOnlineBossOrbits(en, list){
-  if(!en) return;
-  if(!en.orbits) en.orbits = [];
-  while(en.orbits.length < list.length){
-    en.orbits.push({...makeOrbitVisual(), x:0, y:0, z:0, state:'charge', t:0, cycle:0, aimDirX:0, aimDirZ:0, faceX:0, faceY:0, faceZ:0});
-  }
-  while(en.orbits.length > list.length){
-    teardownOrbitVisual(en.orbits.pop());
-  }
-  for(let i=0;i<list.length;i++){
-    const o = en.orbits[i], d = list[i];
-    o.x=d.x; o.y=d.y; o.z=d.z; o.state=d.state; o.t=d.t; o.cycle=d.cycle; o.aimDirX=d.aimDirX; o.aimDirZ=d.aimDirZ;
-    o.faceX=(typeof d.faceX==='number'?d.faceX:o.faceX); o.faceY=(typeof d.faceY==='number'?d.faceY:o.faceY); o.faceZ=(typeof d.faceZ==='number'?d.faceZ:o.faceZ);
-    if(!Number.isFinite(o.x)) o.x=0; if(!Number.isFinite(o.y)) o.y=0; if(!Number.isFinite(o.z)) o.z=0;
-    positionOrbitMesh(o);
-  }
-}
-// guest-only: the animation half of the swarm (charge glow ramp / facing its target /
-// the telegraph line during charge / the real thin beam once firing), driven off the
-// state/t/faceX-Y-Z/aimDirX-Z each orbit's own snapshot last set - advances its own
-// local copy of t between snapshots for smooth 60fps playback the same way
-// updateOnlineBossBeamCosmetic does for the big beam, and never touches hit detection
-function updateOnlineBossOrbitsCosmetic(en, dt){
-  if(!en || !en.orbits) return;
-  for(const o of en.orbits){
-    o.t = (o.t||0) + dt;
-    if(o.state==='charge'){
-      // faceX/Y/Z should always be real numbers now (see spawnBossOrbits' own seed
-      // default) - guarded anyway since Object3D.lookAt throws outright on a null/non-
-      // finite target instead of just ignoring it, and a relayed snapshot is never
-      // fully trustworthy input
-      if(Number.isFinite(o.faceX) && Number.isFinite(o.faceY) && Number.isFinite(o.faceZ)){
-        faceOrbitToward(o, o.faceX, o.faceY, o.faceZ);
-      }
-      positionOrbitTelegraphVisual(o);
-      updateOrbitChargeVisual(o, Math.min(1, o.t/ORBIT_CHARGE_DUR));
-    } else {
-      // orientation frozen exactly where charging left it - see the matching comment
-      // in updateBossOrbits
-      hideOrbitTelegraphVisual(o);
-      positionOrbitBeamVisual(o);
-    }
-  }
 }
 // guest-side: id -> the local ghost Item mirroring that same ground item on the host.
 // These are purely visual - never picked up by any local logic (the guest never runs
@@ -15023,8 +14787,6 @@ let onlineMatchConfig = null;
 function onlineCharacterFor(who, botIdx){
   if(who==='host') return remotePlayer;
   if(who==='guest') return ragdoll;
-  if(who==='boss') return onlineBoss;
-  if(who==='bot') return onlineCpuBots[botIdx] || null;
   return null;
 }
 function handleOnlineData(data, weAreHost){
@@ -15089,23 +14851,6 @@ function handleOnlineData(data, weAreHost){
     applySerializedCharacter(ragdoll, data.guest);
     applySerializedCharacter(remotePlayer, data.host);
     applyOnlineGroundItems(data.groundItems);
-    if(data.bots) for(let i=0;i<onlineCpuBots.length && i<data.bots.length;i++) applySerializedCharacter(onlineCpuBots[i], data.bots[i]);
-    if(data.boss && onlineBoss) applySerializedCharacter(onlineBoss, data.boss);
-    if(data.bossExtra && onlineBoss) applyOnlineBossExtra(onlineBoss, data.bossExtra);
-    if(onlineBoss) applyOnlineBossOrbits(onlineBoss, data.orbits||[]);
-  } else if(data.type==='bossSummon' && !weAreHost){
-    // GO just got called in on the host's side - build the exact same visual here,
-    // purely cosmetic (no AI/physics authority - see spawnOnlineCpuBots' own comment
-    // on why that's fine to share directly rather than needing a separate "dummy"
-    // variant), then let the snapshot above take over syncing it every tick
-    if(!onlineBoss){
-      onlineBoss = spawnBoss(data.x, data.z);
-      onlineBossMeshSet = enemyMeshSets[enemies.indexOf(onlineBoss)];
-    }
-  } else if(data.type==='bossRemove' && !weAreHost){
-    teardownOnlineBoss();
-  } else if(data.type==='summonBoss' && weAreHost){
-    trySummonOnlineBoss();
   } else if(data.type==='sfx' && !weAreHost){
     playSfx(data.key, onlineCharacterFor(data.who, data.botIdx), data.maxDist, 0.14, data.volMul||1);
   } else if(data.type==='wound' && !weAreHost){
